@@ -18,3 +18,9 @@ before_build:
 
 build_script:
   - cmd: dotnet build 
+
+test_script:
+  # run the unit tests (requires changing into the test directory)
+  - cmd: cd tests
+  - cmd: cd Heaven.Tests
+  - cmd: dotnet run

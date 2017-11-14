@@ -3,7 +3,7 @@ open System
 open System.Runtime.InteropServices
 open System.Text.RegularExpressions
 
-let private identifierRegEx = Regex("[_a-zA-Z][_a-zA-Z0-9]*")
+let private identifierRegEx = Regex("""^[^\d\W]\w*\Z""")
 
 type Identifier = 
         private | Identifier of string 
