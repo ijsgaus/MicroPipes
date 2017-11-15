@@ -66,7 +66,8 @@ type OrdinalLiteral =
     | I32Literal of int32
     | U64Literal of uint64
     | I64Literal of int64
-            
+
+
 type BasicLiteral =
     | OrdinalLiteral of OrdinalLiteral
     | F32Literal of float32
@@ -79,16 +80,39 @@ type BasicLiteral =
     | TSLiteral of TimeSpan
     | NoneLiteral
 
+[<CustomEquality>]
+[<CustomComparison>]
+type UrlLiteral = 
+    | UrlLiteral of Uri
+    override __.Equals(other) =
+            match other with
+            | :? UrlLiteral as o ->  
+                let (UrlLiteral x) = __
+                let (UrlLiteral y) = o
+                x.ToString() = y.ToString()
+            | _ -> false
+    override __.GetHashCode() = let (UrlLiteral a) = __ in a.GetHashCode()
+    interface IEquatable<UrlLiteral> with
+        member __.Equals other =
+            let (UrlLiteral x) = __
+            let (UrlLiteral y) = other
+            x.ToString() = y.ToString()
+    interface IComparable<UrlLiteral> with
+        member __.CompareTo other =
+            let (UrlLiteral x) = __
+            let (UrlLiteral y) = other
+            StringComparer.InvariantCulture.Compare(x.ToString(), y.ToString())
+    interface IComparable with
+        member __.CompareTo other =
+            match other with
+            | :? UrlLiteral as y -> (__ :> IComparable<UrlLiteral>).CompareTo(y)
+            | _ -> invalidArg "other" "cannot compare values of different types"
+
 type Literal =
-    | IdentifierLiteral of QualifiedIdentifier
-    | BasicLiteral of BasicLiteral 
-    | ArrayLiteral of Literal list
-    | MapLiteral of Map<Identifier, Literal>
+    | Identifier of QualifiedIdentifier
+    | Url of UrlLiteral
+    | Basic of BasicLiteral 
+    | Array of Literal list
+    | Map of Map<Identifier, Literal>
 
-type OrdinalType =
-    | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64
-    
 
-type BasicType =
-    | Ordinal of OrdinalType
-    | F32 | F64 | String | Uuid | DT | DTO | TS | Bool

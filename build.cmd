@@ -1,2 +1,1 @@
-dotnet restore
-dotnet build
+powershell -ExecutionPolicy ByPass -File ./build.ps1

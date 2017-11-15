@@ -2,34 +2,53 @@ module HeavenPipe.Schemas.Services
 open Literals
 open Types
 
-type EventDescription =
-    {
-        EventType : TypeReference
-    } 
-    
-type CallArguments =
-    | Single of TypeReference
-    | Multiple of Map<Identifier, TypeReference> 
 
+type ArgumentDescription =
+    {
+        Name : Identifier
+        Type : TypeReference
+    }
+    
 type CallDescription =
     {
-        Arguments : CallArguments
+        Arguments : ArgumentDescription list
         Result : TypeReference
     }
 
-type EndpointDescription =
-    | Event of EventDescription
+type EndpointDeclaration =
+    | Event of TypeReference
     | Call of CallDescription
+    
+type EndpointDescription =
+    {
+        Name : Identifier
+        Endpoint : EndpointDeclaration
+        Modifiers : Modifiers
+    }
+    
+type RouteNode =
+    | GroupRoute of Literal * RouteNode list
+    | Route of Literal * EndpointDeclaration 
 
-type ServiceDescription = Map<Identifier, EndpointDescription * Modifiers> * Modifiers
 
 type SemanticVersion = Version of string
 
+type AddressOrAlias =
+    | Uri of UrlLiteral
+    | Alias of Identifier
+    | Default
+    
+type Protocol =
+    {
+        Name : QualifiedIdentifier
+        Address : AddressOrAlias
+    }
+
+
 type SchemaDeclaration =
     {
-        Namespace : QualifiedIdentifier
-        Extensions : Set<QualifiedIdentifier>
+        Name : QualifiedIdentifier
         Version : SemanticVersion
         Types : Map<Identifier, TypeDescription>
-        Services : Map<Identifier, ServiceDescription>        
+        Cnannels : Map<Protocol, RouteNode list>        
     }

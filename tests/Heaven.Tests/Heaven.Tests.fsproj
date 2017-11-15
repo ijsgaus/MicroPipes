@@ -21,5 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HeavenPipe.Schemas\HeavenPipe.Schemas.fsproj" />
+    <ProjectReference Include="..\..\src\HeavenPipe\HeavenPipe.fsproj" />
   </ItemGroup> 
 </Project>
