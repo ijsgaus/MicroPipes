@@ -1,2 +1,2 @@
-[![Build Status](https://travis-ci.org/ijsgaus/HeavenPipe.svg?branch=master)](https://travis-ci.org/ijsgaus/HeavenPipe.svg?branch=master) [![Build Status](https://ci.appveyor.com/api/projects/status/c5binnnl393r0037?svg=true)](https://ci.appveyor.com/api/projects/status/c5binnnl393r0037?svg=true)
-# HeavenPipe
+Linux build: [![Build Status](https://travis-ci.org/ijsgaus/MicorPipes.svg?branch=master)](https://travis-ci.org/ijsgaus/MicroPipes.svg?branch=master)  Windows build: [![Build Status](https://ci.appveyor.com/api/projects/status/vu2edjapa3aul2f6?svg=true)](https://ci.appveyor.com/api/projects/status/vu2edjapa3aul2f6?svg=true)
+# MicroPipes
