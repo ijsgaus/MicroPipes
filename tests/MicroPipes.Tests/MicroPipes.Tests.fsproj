@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\HeavenPipe.Schemas\HeavenPipe.Schemas.fsproj" />
-    <ProjectReference Include="..\..\src\HeavenPipe\HeavenPipe.fsproj" />
+    <ProjectReference Include="..\..\src\MicroPipes.Schemas\MicroPipes.Schemas.fsproj" />
+    <ProjectReference Include="..\..\src\MicroPipes\MicroPipes.fsproj" />
   </ItemGroup> 
 </Project>

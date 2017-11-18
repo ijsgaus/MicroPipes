@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = ".build", ".\build\.build.cs
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{09F07E12-5964-45C3-BFA4-945258B10E8D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HeavenPipe.Schemas", "src\HeavenPipe.Schemas\HeavenPipe.Schemas.fsproj", "{CC374390-61A5-4031-9639-677AF55BC405}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MicroPipes.Schemas", "src\MicroPipes.Schemas\MicroPipes.Schemas.fsproj", "{CC374390-61A5-4031-9639-677AF55BC405}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E4416BDD-913F-4F18-B509-0757984A2DE8}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Heaven.Tests", "tests\Heaven.Tests\Heaven.Tests.fsproj", "{CFB97C4A-28A5-4E5B-8B38-8729E3A32D60}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MicroPipes.Tests", "tests\MicroPipes.Tests\MicroPipes.Tests.fsproj", "{CFB97C4A-28A5-4E5B-8B38-8729E3A32D60}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HeavenPipe", "src\HeavenPipe\HeavenPipe.fsproj", "{17673135-F4B8-4B09-ADDE-19B458F1BD69}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MicroPipes", "src\MicroPipes\MicroPipes.fsproj", "{17673135-F4B8-4B09-ADDE-19B458F1BD69}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{95091AA6-3E43-43E3-97AB-5889C819EBAD}"
 EndProject

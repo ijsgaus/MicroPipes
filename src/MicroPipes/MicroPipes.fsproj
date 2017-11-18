@@ -6,6 +6,6 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HeavenPipe.Schemas\HeavenPipe.Schemas.fsproj" />
+    <ProjectReference Include="..\MicroPipes.Schemas\MicroPipes.Schemas.fsproj" />
   </ItemGroup>
 </Project>

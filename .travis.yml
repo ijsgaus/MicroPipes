@@ -1,8 +1,8 @@
 language: csharp
 mono: latest
-solution: HeavenPipe.sln
+solution: MicroPipes.sln
 dotnet: 2.0.0
 dist: trusty
 script:
 - dotnet restore
-- dotnet build ./tests/Heaven.Tests/Heaven.Tests.fsproj
+- dotnet build ./tests/MicroPipes.Tests/MicroPipes.Tests.fsproj
