@@ -49,26 +49,41 @@ type TypeReference =
 
 type Modifiers = Map<QualifiedIdentifier, Literal>
 
-type FieldedTypeDescription =
-    | Indexed of Map<NameAndIndex, TypeReference * Modifiers>
-    | Named of Map<Identifier, TypeReference * Modifiers>
+type NamedEntry =
+    {
+        Kind : TypeReference
+        Summary: string option
+        Modifiers : Map<QualifiedIdentifier, Literal>
+    }
+
+
+type TypeWithDescription =
+    | Indexed of Map<NameAndIndex, NamedEntry>
+    | Named of Map<Identifier, NamedEntry>
+
+type EnumField =
+    {
+        Value : OrdinalLiteral
+        Summary : string option
+    }
 
 type EnumTypeDescription =
     {
         IsFlag : bool
         Based : OrdinalType
-        Values : Map<Identifier, OrdinalLiteral>
+        Values : Map<Identifier, EnumField>
     }
 
 type ComplexTypeDescription =
     | EnumType of EnumTypeDescription
-    | MapType of FieldedTypeDescription
-    | OneOfType of FieldedTypeDescription
+    | MapType of TypeWithDescription 
+    | OneOfType of TypeWithDescription
 
 type TypeDescription =
     {
         Body: ComplexTypeDescription
         Modifiers : Modifiers
+        Summary: string option
     }
 
 

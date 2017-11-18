@@ -7,12 +7,13 @@ type ArgumentDescription =
     {
         Name : Identifier
         Type : TypeReference
+        Summary : string option
     }
     
 type CallDescription =
     {
         Arguments : ArgumentDescription list
-        Result : TypeReference
+        Result : TypeReference * string option
     }
 
 type EndpointDeclaration =
@@ -24,6 +25,7 @@ type EndpointDescription =
         Name : Identifier
         Endpoint : EndpointDeclaration
         Modifiers : Modifiers
+        Summary : string option
     }
     
 type RouteNode =
@@ -33,17 +35,7 @@ type RouteNode =
 
 type SemanticVersion = Version of string
 
-type AddressOrAlias =
-    | Uri of UrlLiteral
-    | Alias of Identifier
-    | Default
-    
-type Protocol =
-    {
-        Name : QualifiedIdentifier
-        Address : AddressOrAlias
-    }
-
+type Protocol = Protocol of QualifiedIdentifier
 
 type SchemaDeclaration =
     {
