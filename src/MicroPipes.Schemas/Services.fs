@@ -33,7 +33,7 @@ type RouteNode =
     | Route of Literal * EndpointDeclaration 
 
 
-type SemanticVersion = Version of string
+
 
 type Protocol = Protocol of QualifiedIdentifier
 

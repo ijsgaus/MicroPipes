@@ -1,61 +1,93 @@
 module HeavenPipe.Schemas.Literals
 open System
+open System.Text
 open System.Runtime.InteropServices
 open System.Text.RegularExpressions
+open FParsec
 
-let private identifierRegEx = Regex("""^[^\d\W]\w*\Z""")
+ 
+   
+        
 
 type Identifier = 
-        private | Identifier of string 
-        static member TryCreate (str) =
-            if identifierRegEx.IsMatch(str) then Identifier str |> Ok else Error "Invalid identifier"
-        static member TryMake (str, [<Out>] id : Identifier byref)  = 
-            match Identifier.TryCreate(str) with
-            | Ok s -> id <- s; true
-            | _ -> id <- Unchecked.defaultof<Identifier>; false
-        static member Create s =
-            match Identifier.TryCreate s with
-            | Ok s -> s
-            | Error e -> raise (ArgumentException e)
+        private | Identifier of string
+        override __.ToString () = let (Identifier s) = __ in s
+        
+let pidentifier<'t> : Parser<Identifier, 't> =
+       let isAsciiIdContinue = fun c -> isAsciiLetter c || isDigit c || c = '_'
+       identifier (IdentifierOptions(
+                           isAsciiIdStart = isAsciiLetter,
+                           isAsciiIdContinue = isAsciiIdContinue
+                           )) |>> Identifier
+type Identifier with                           
+    static member TryCreate (str) =
+        match run pidentifier str with
+        | Success(id, _, _) ->  id |> Result.Ok
+        | Failure(msg, _, _) -> msg |> Result.Error
+    static member TryMake (str, [<Out>] id : Identifier byref)  = 
+        match Identifier.TryCreate(str) with
+        | Result.Ok s -> id <- s; true
+        | _ -> id <- Unchecked.defaultof<Identifier>; false
+    static member Create s =
+        match Identifier.TryCreate s with
+        | Result.Ok s -> s
+        | Result.Error e -> raise (ArgumentException e)
+        
     
 type QualifiedIdentifier =
+    private
     | Simple of Identifier
     | Complex of Identifier * QualifiedIdentifier
-    static member TryCreate (ns: string) =
-        let rec fromList lst =
-            match lst with
-            | [] -> Error("empty name")
-            | [id] -> Simple id |> Ok
-            | id :: tail -> fromList tail |> Result.map (fun p -> Complex(id, p))
-        let folder state el =     
-            match state with
-            | Ok p ->
-                match el with
-                | Ok e -> Ok(e :: p)
-                | Error s -> Error s
-            | Error s ->
-                match el with
-                | Error s1 -> Error (s1 + Environment.NewLine + s)
-                | _ -> state
-                    
-        let splitted = 
-            ns.Split(':') 
-                |> Array.toList 
-                |> List.map Identifier.TryCreate
-                |> List.rev
-                |> List.fold folder (Ok []) 
-        match splitted with
-        | Error s -> Error s
-        | Ok sp -> fromList sp 
-    static member TryMake (str, [<Out>] id : QualifiedIdentifier byref) =
+    override __.ToString() =
+        let rec toStr qi =
+            match qi with
+            | Simple id -> id.ToString()
+            | Complex (id, qid) -> id.ToString() + "." + (toStr qid)
+        toStr __ 
+
+let pqualified<'t> : Parser<QualifiedIdentifier, 't> =
+    let rec toQId lst =
+        match lst with
+        | [] -> invalidOp "Empty string mistake" // this cannot be by parser
+        | [p] -> Simple p
+        | h :: t -> Complex (h, toQId t)   
+    sepBy1 pidentifier (pchar '.') |>> toQId    
+    
+type QualifiedIdentifier with    
+    static member TryCreate qi =
+        match run pqualified qi with
+        | Success(id, _, _) ->  id |> Result.Ok
+        | Failure(msg, _, _) -> msg |> Result.Error 
+    static member TryMake (str, [<Out>] id : QualifiedIdentifier byref)  = 
         match QualifiedIdentifier.TryCreate(str) with
-        | Ok s -> id <- s; true
+        | Result.Ok s -> id <- s; true
         | _ -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
     static member Create s =
         match QualifiedIdentifier.TryCreate s with
-        | Ok s -> s
-        | Error e -> raise (ArgumentException e)
-        
+        | Result.Ok s -> s
+        | Result.Error e -> raise (ArgumentException e)
+   
+   
+type SemanticVersion = 
+    {
+        Major : uint16
+        Minor : uint16
+        Build : uint32
+        Prerelease : string option
+        PrereleaseNum : uint16 option
+    }
+    override __.ToString() = 
+        let bld = StringBuilder()
+        bld.AppendFormat("{0}.{1}.{2}", __.Major, __.Minor, __.Build) |> ignore
+        match __.Prerelease with
+        | Some s -> 
+            bld.AppendFormat("-{0}", s) |> ignore
+            match __.PrereleaseNum with
+            | Some i -> bld.Append(i) |> ignore
+            | None -> ()
+        | None -> ()
+        bld.ToString()
+                
 
 type OrdinalLiteral =
     | U8Literal of byte

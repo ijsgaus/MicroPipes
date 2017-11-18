@@ -85,6 +85,14 @@ type TypeDescription =
         Modifiers : Modifiers
         Summary: string option
     }
+    
+type TypeLibrary = 
+    {
+        Name : QualifiedIdentifier
+        Version : SemanticVersion
+        Imports : (QualifiedIdentifier * SemanticVersion) list
+        Types : TypeLibrary list
+    }
 
 
     

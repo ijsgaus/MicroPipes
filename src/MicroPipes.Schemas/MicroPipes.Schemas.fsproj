@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Literals.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Services.fs" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
+  </ItemGroup>
 </Project>
