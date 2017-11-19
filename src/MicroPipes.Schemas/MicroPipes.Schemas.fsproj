@@ -5,9 +5,12 @@
   <ItemGroup>
     <Compile Include="Literals.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Services.fs" />
+    <Compile Include="Pipes.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FParsec" Version="1.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FSharp.LanguageExt\FSharp.LanguageExt.fsproj" />
   </ItemGroup>
 </Project>

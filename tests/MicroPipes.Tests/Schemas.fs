@@ -1,7 +1,7 @@
 module Schemas
 
 open Expecto
-open HeavenPipe.Schemas.Literals
+open MicroPipes.Schemas.Literals
 
 module Result =
     let isError r =

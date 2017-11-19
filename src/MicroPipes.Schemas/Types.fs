@@ -1,7 +1,8 @@
-module HeavenPipe.Schemas.Types
+module MicroPipes.Schemas.Types
 
 open System
 open Literals
+open FSharp.LanguageExt
 
  
 type OrdinalType =
@@ -11,31 +12,7 @@ type BasicType =
     | Ordinal of OrdinalType
     | F32 | F64 | String | Uuid | DT | DTO | TS | Bool | Url
 
-[<CustomEquality>]
-[<CustomComparison>]
-type NameAndIndex =
-    {
-        Name : Identifier
-        Index : int
-    }
-    override __.Equals(other) =
-        match other with
-        | :? NameAndIndex as y -> __.Name = y.Name || __.Index = y.Index
-        | _ -> false
-    override __.GetHashCode() = __.Index.GetHashCode()
-    interface IEquatable<NameAndIndex> with
-        member __.Equals other =
-            __.Name = other.Name || __.Index = other.Index
-    interface IComparable<NameAndIndex> with
-        member __.CompareTo other =
-            if __.Name = other.Name || __.Index = other.Index 
-                then 0
-                else __.Index.CompareTo(other.Index)
-    interface IComparable with
-        member __.CompareTo other =
-            match other with
-            | :? NameAndIndex as y -> (__ :> IComparable<NameAndIndex>).CompareTo(y)
-            | _ -> invalidArg "other" "cannot compare values of different types"
+
 
 
 type TypeReference =
@@ -43,23 +20,41 @@ type TypeReference =
     | BasicType of BasicType
     | ArrayType of TypeReference
     | MayBeType of TypeReference
-    | NamedType of Identifier
+    | NamedType of QualifiedIdentifier
     | TupleType of TypeReference list
 
-
-type Modifiers = Map<QualifiedIdentifier, Literal>
 
 type NamedEntry =
     {
         Kind : TypeReference
         Summary: string option
-        Modifiers : Map<QualifiedIdentifier, Literal>
     }
 
+type NameAndIndex =
+    {
+        Name : Identifier
+        Index : int
+    }
 
-type TypeWithDescription =
-    | Indexed of Map<NameAndIndex, NamedEntry>
-    | Named of Map<Identifier, NamedEntry>
+[<Struct>]
+type NameOrIndexEq =
+    interface Eq<NameAndIndex> with
+        member __.Equals (x, y) =
+            StringComparer.InvariantCultureIgnoreCase.Equals(x.Name.ToString(), y.Name.ToString()) || x.Index = y.Index
+        member __.GetHashCode x =
+            x.Index.GetHashCode()
+
+[<Struct>]    
+type IdentifierIgnoreCaseEq =
+    interface Eq<Identifier> with
+        member __.Equals (x , y) =
+            StringComparer.InvariantCultureIgnoreCase.Equals(x.ToString(), y.ToString())
+        member __.GetHashCode x =
+            StringComparer.InvariantCultureIgnoreCase.GetHashCode (x.ToString())
+
+type StructuredTypeDescription =
+    | Indexed of HashMap<NameOrIndexEq, NameAndIndex, NamedEntry>
+    | Named of HashMap<IdentifierIgnoreCaseEq, Identifier, NamedEntry>
 
 type EnumField =
     {
@@ -71,18 +66,17 @@ type EnumTypeDescription =
     {
         IsFlag : bool
         Based : OrdinalType
-        Values : Map<Identifier, EnumField>
+        Values : HashMap<IdentifierIgnoreCaseEq, Identifier, EnumField>
     }
 
-type ComplexTypeDescription =
+type TypeDeclaration =
     | EnumType of EnumTypeDescription
-    | MapType of TypeWithDescription 
-    | OneOfType of TypeWithDescription
+    | MapType of StructuredTypeDescription 
+    | OneOfType of StructuredTypeDescription
 
 type TypeDescription =
     {
-        Body: ComplexTypeDescription
-        Modifiers : Modifiers
+        Body: TypeDeclaration
         Summary: string option
     }
     
@@ -91,7 +85,7 @@ type TypeLibrary =
         Name : QualifiedIdentifier
         Version : SemanticVersion
         Imports : (QualifiedIdentifier * SemanticVersion) list
-        Types : TypeLibrary list
+        Types : HashMap<IdentifierIgnoreCaseEq, Identifier, TypeDescription>
     }
 
 

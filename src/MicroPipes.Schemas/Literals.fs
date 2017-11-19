@@ -1,13 +1,10 @@
-module HeavenPipe.Schemas.Literals
+module MicroPipes.Schemas.Literals
 open System
 open System.Text
 open System.Runtime.InteropServices
 open System.Text.RegularExpressions
 open FParsec
 
- 
-   
-        
 
 type Identifier = 
         private | Identifier of string
@@ -45,6 +42,52 @@ type QualifiedIdentifier =
             | Complex (id, qid) -> id.ToString() + "." + (toStr qid)
         toStr __ 
 
+module QualifiedIdentifier =
+    /// <summary>
+    /// First identifier in qualified identifier
+    /// </summary>
+    let head qid = match qid with | Simple id | Complex (id, _) -> id
+
+    /// <summary>
+    /// Qualified identifier without first identifier
+    /// </summary>    
+    let rest qid = 
+        match qid with
+        | Simple _ -> None
+        | Complex (_, i) -> i |> Some
+        
+    /// <summary>
+    /// Last identifier in quailifier identifier
+    /// </summary>    
+    let rec tail qid =
+        match qid with
+        | Simple t -> t
+        | Complex (_, i) -> tail i
+    
+    /// <summary>
+    /// Qualified identifier without last identifier
+    /// </summary> 
+    let rec start qid =
+        match qid with
+        | Simple _ -> None
+        | Complex (t , r) ->
+            match start r with
+            | None -> Simple t |> Some
+            | Some ci -> Complex(t, ci) |> Some
+
+    /// <summary>
+    /// Identifier count
+    /// </summary> 
+    let count qid = 
+        let rec cnt id acc =
+            match id with
+            | Simple _ -> acc + 1 
+            | Complex(_, r) -> cnt r (acc + 1)
+        cnt qid 0
+    let isAlone qid = match qid with | Simple _ -> true | _ -> false
+
+    
+    
 let pqualified<'t> : Parser<QualifiedIdentifier, 't> =
     let rec toQId lst =
         match lst with
@@ -53,7 +96,31 @@ let pqualified<'t> : Parser<QualifiedIdentifier, 't> =
         | h :: t -> Complex (h, toQId t)   
     sepBy1 pidentifier (pchar '.') |>> toQId    
     
-type QualifiedIdentifier with    
+type QualifiedIdentifier with 
+    /// <summary>
+    /// First identifier in qualified identifier
+    /// </summary>   
+    member __.Head () = QualifiedIdentifier.head __
+    /// <summary>
+    /// Qualified identifier without first identifier
+    /// </summary>
+    member __.TryGetRest([<Out>] id: _ byref) =
+        match QualifiedIdentifier.rest __ with
+        | Some p -> id <- p; true
+        | None -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
+    /// <summary>
+    /// Last identifier in quailifier identifier
+    /// </summary>  
+    member __.Rest() = QualifiedIdentifier.rest __
+    /// <summary>
+    /// Qualified identifier without last identifier
+    /// </summary> 
+    member __.Start([<Out>] id: _ byref) =
+        match QualifiedIdentifier.start __ with
+        | Some p -> id <- p; true
+        | None -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
+    member __.Count = QualifiedIdentifier.count __
+    member __.IsAlone = QualifiedIdentifier.isAlone __
     static member TryCreate qi =
         match run pqualified qi with
         | Success(id, _, _) ->  id |> Result.Ok
@@ -112,37 +179,8 @@ type BasicLiteral =
     | TSLiteral of TimeSpan
     | NoneLiteral
 
-[<CustomEquality>]
-[<CustomComparison>]
-type UrlLiteral = 
-    | UrlLiteral of Uri
-    override __.Equals(other) =
-            match other with
-            | :? UrlLiteral as o ->  
-                let (UrlLiteral x) = __
-                let (UrlLiteral y) = o
-                x.ToString() = y.ToString()
-            | _ -> false
-    override __.GetHashCode() = let (UrlLiteral a) = __ in a.GetHashCode()
-    interface IEquatable<UrlLiteral> with
-        member __.Equals other =
-            let (UrlLiteral x) = __
-            let (UrlLiteral y) = other
-            x.ToString() = y.ToString()
-    interface IComparable<UrlLiteral> with
-        member __.CompareTo other =
-            let (UrlLiteral x) = __
-            let (UrlLiteral y) = other
-            StringComparer.InvariantCulture.Compare(x.ToString(), y.ToString())
-    interface IComparable with
-        member __.CompareTo other =
-            match other with
-            | :? UrlLiteral as y -> (__ :> IComparable<UrlLiteral>).CompareTo(y)
-            | _ -> invalidArg "other" "cannot compare values of different types"
-
 type Literal =
     | Identifier of QualifiedIdentifier
-    | Url of UrlLiteral
     | Basic of BasicLiteral 
     | Array of Literal list
     | Map of Map<Identifier, Literal>
