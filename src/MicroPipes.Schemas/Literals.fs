@@ -4,6 +4,7 @@ open System.Text
 open System.Runtime.InteropServices
 open System.Text.RegularExpressions
 open FParsec
+open FSharp.LanguageExt
 
 
 type Identifier = 
@@ -154,7 +155,29 @@ type SemanticVersion =
             | None -> ()
         | None -> ()
         bld.ToString()
-                
+          
+[<Struct>]    
+type IdentifierIgnoreCaseEq =
+    interface Eq<Identifier> with
+        member __.Equals (x , y) =
+            StringComparer.InvariantCultureIgnoreCase.Equals(x.ToString(), y.ToString())
+        member __.GetHashCode x =
+            StringComparer.InvariantCultureIgnoreCase.GetHashCode (x.ToString())                
+
+type NameAndIndex =
+    {
+        Name : Identifier
+        Index : int
+    }
+
+[<Struct>]
+type NameOrIndexEq =
+    interface Eq<NameAndIndex> with
+        member __.Equals (x, y) =
+            StringComparer.InvariantCultureIgnoreCase.Equals(x.Name.ToString(), y.Name.ToString()) || x.Index = y.Index
+        member __.GetHashCode x =
+            x.Index.GetHashCode()
+
 
 type OrdinalLiteral =
     | U8Literal of byte
@@ -179,10 +202,14 @@ type BasicLiteral =
     | TSLiteral of TimeSpan
     | NoneLiteral
 
-type Literal =
+type MapLiteral =
+    | Named of HashMap<IdentifierIgnoreCaseEq, Identifier, Literal>
+    | Indexed of Map<int, Literal>
+    | Botch of HashMap<NameOrIndexEq, NameAndIndex, Literal> 
+and Literal =
     | Identifier of QualifiedIdentifier
     | Basic of BasicLiteral 
     | Array of Literal list
-    | Map of Map<Identifier, Literal>
+    | Map of MapLiteral
 
 

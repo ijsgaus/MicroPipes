@@ -30,44 +30,33 @@ type NamedEntry =
         Summary: string option
     }
 
-type NameAndIndex =
-    {
-        Name : Identifier
-        Index : int
-    }
-
-[<Struct>]
-type NameOrIndexEq =
-    interface Eq<NameAndIndex> with
-        member __.Equals (x, y) =
-            StringComparer.InvariantCultureIgnoreCase.Equals(x.Name.ToString(), y.Name.ToString()) || x.Index = y.Index
-        member __.GetHashCode x =
-            x.Index.GetHashCode()
-
-[<Struct>]    
-type IdentifierIgnoreCaseEq =
-    interface Eq<Identifier> with
-        member __.Equals (x , y) =
-            StringComparer.InvariantCultureIgnoreCase.Equals(x.ToString(), y.ToString())
-        member __.GetHashCode x =
-            StringComparer.InvariantCultureIgnoreCase.GetHashCode (x.ToString())
-
 type StructuredTypeDescription =
     | Indexed of HashMap<NameOrIndexEq, NameAndIndex, NamedEntry>
     | Named of HashMap<IdentifierIgnoreCaseEq, Identifier, NamedEntry>
 
-type EnumField =
+type EnumField<'t> =
     {
-        Value : OrdinalLiteral
+        Value : 't
         Summary : string option
     }
 
-type EnumTypeDescription =
+type EnumTypeDescription<'t> =
     {
         IsFlag : bool
-        Based : OrdinalType
-        Values : HashMap<IdentifierIgnoreCaseEq, Identifier, EnumField>
+        Values : HashMap<IdentifierIgnoreCaseEq, Identifier, EnumField<'t>>
     }
+    
+type EnumTypeDescription =
+    | Enum8u  of EnumTypeDescription<byte>
+    | Enum8   of EnumTypeDescription<sbyte>
+    | Enum16  of EnumTypeDescription<int16>
+    | Enum16u of EnumTypeDescription<uint16>
+    | Enum32  of EnumTypeDescription<int32>
+    | Enum32u of EnumTypeDescription<uint32>
+    | Enum64  of EnumTypeDescription<int64>
+    | Enum64u of EnumTypeDescription<uint64>
+     
+
 
 type TypeDeclaration =
     | EnumType of EnumTypeDescription
