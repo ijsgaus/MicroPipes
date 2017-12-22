@@ -1,7 +1,6 @@
 language: csharp
-mono: latest
 solution: MicroPipes.sln
-dotnet: 2.0.0
+dotnet: lastest
 dist: trusty
 script:
 - dotnet restore
