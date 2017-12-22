@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Aliases.fs" />
+    <Compile Include="Common.fs" />
+    <Compile Include="Literals.fs" />
+    <Compile Include="BasicTypes.fs" />
+    <Compile Include="Green.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+  </ItemGroup>
+</Project>
