@@ -1,4 +1,5 @@
 language: csharp
+mono: none
 solution: MicroPipes.sln
 dotnet: lastest
 dist: trusty
