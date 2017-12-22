@@ -1,6 +1,6 @@
 ﻿using System.Net.Mime;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class EventSchemaGreen : EndpointSchemaGreen
     {

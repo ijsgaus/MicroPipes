@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class EnumTypeSchemaGreen : TypeSchemaGreen
     {

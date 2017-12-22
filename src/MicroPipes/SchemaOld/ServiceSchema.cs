@@ -7,9 +7,9 @@ using System.Reflection;
 using System.Text;
 using MicroPipes.Markup;
 using MicroPipes.Markup.RabbitMq;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
 
     public class ServiceSchema 

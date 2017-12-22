@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Mime;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public class EventSchema  
     {

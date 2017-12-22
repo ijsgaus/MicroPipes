@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class WellKnownTypeSchemaGreen : TypeSchemaGreen, IHasSchemaName
     {

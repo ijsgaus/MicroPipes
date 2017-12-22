@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public abstract class TypeSchema 
     {

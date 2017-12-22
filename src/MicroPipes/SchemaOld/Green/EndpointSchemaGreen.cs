@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Mime;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public abstract class EndpointSchemaGreen : GreenNode
     {

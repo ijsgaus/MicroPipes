@@ -1,4 +1,4 @@
-﻿namespace MicroPipes.Schema.Green
+﻿namespace MicroPipes.SchemaOld.Green
 {
     public interface IHasSchemaName
     {

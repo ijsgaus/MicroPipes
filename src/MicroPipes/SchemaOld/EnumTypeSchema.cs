@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public sealed class EnumTypeSchema : TypeSchema
     {

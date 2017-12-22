@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public class ComplexTypeSchema : TypeSchema
     {

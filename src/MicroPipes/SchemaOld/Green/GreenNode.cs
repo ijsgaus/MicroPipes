@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class GreenNode
     {

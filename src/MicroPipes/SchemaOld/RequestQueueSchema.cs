@@ -1,4 +1,4 @@
-﻿namespace MicroPipes.Schema
+﻿namespace MicroPipes.SchemaOld
 {
     public class RequestQueueSchema 
     {

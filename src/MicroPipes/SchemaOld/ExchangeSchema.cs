@@ -1,6 +1,6 @@
 ﻿using MicroPipes.Markup.RabbitMq;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public class ExchangeSchema 
     {

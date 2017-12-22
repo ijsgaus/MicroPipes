@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class NullableTypeSchemaGreen : TypeSchemaGreen
     {

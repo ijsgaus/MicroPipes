@@ -1,7 +1,7 @@
 ﻿using System.Net.Mime;
 using MicroPipes.Markup.RabbitMq;
 
-namespace MicroPipes.Schema.Green
+namespace MicroPipes.SchemaOld.Green
 {
     public class CallSchemaGreen : EndpointSchemaGreen
     {

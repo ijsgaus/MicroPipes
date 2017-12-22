@@ -155,7 +155,7 @@ type QualifiedIdentifier with
         | Result.Ok s -> s
         | Result.Error e -> raise (ArgumentException e)
    
-   
+ 
 type SemanticVersion = 
     {
         Major : uint16
@@ -164,6 +164,45 @@ type SemanticVersion =
         Prerelease : string option
         PrereleaseNum : uint16 option
     }
+    static member private RegEx = Regex("^(?<major>[0-9]+).(?<minor>[0-9]*).(?<build>[0-9]*)(?:(?:\-(?<pre>[a-z]+)(?<num>[0-9]+)?))?$")
+    static member TryParse(s, [<Out>] ver : _ byref) =
+        let p = SemanticVersion.RegEx.Match(s)
+        ver <- { Major = 0us; Minor = 0us; Build = 0u; Prerelease = None; PrereleaseNum = None}
+        match p.Success with
+        | false -> false
+        | _ ->
+            let mjrs = p.Groups.["major"].Value
+            let mnrs = p.Groups.["minor"].Value
+            let blds = p.Groups.["build"].Value
+            let pre = p.Groups.["pre"].Value
+            let pres = p.Groups.["num"].Value
+            match UInt16.TryParse(mjrs) with
+            | false, _ -> false
+            | _, mjr ->
+                match UInt16.TryParse(mnrs) with
+                | false, _ -> false
+                | _, mnr ->
+                    match UInt32.TryParse(blds) with
+                    | false, _ -> false
+                    | _, bld ->
+                        match pre with
+                        | "" ->  
+                            ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = None; PrereleaseNum = None}
+                            true
+                        | _ ->
+                            match pres with
+                            | "" -> 
+                                ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = Some pre; PrereleaseNum = None}
+                                true
+                            match UInt16.TryParse(pres) with
+                            | false, _ -> false
+                            | _, num ->
+                                ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = Some pre; PrereleaseNum = Some num}
+                                true
+    static member Parse s =
+        match SemanticVersion.TryParse s with
+        | false, _ -> invalidArg "s" "Invalid version string"
+        | _, v -> v          
     override __.ToString() = 
         let bld = StringBuilder()
         bld.AppendFormat("{0}.{1}.{2}", __.Major, __.Minor, __.Build) |> ignore

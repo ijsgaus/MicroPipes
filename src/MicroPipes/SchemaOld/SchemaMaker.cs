@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using MicroPipes.Markup;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public static class SchemaMaker
     {

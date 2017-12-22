@@ -1,7 +1,7 @@
 ﻿using System;
-using MicroPipes.Schema.Green;
+using MicroPipes.SchemaOld.Green;
 
-namespace MicroPipes.Schema
+namespace MicroPipes.SchemaOld
 {
     public class WellKnownTypeSchema : TypeSchema
     {
