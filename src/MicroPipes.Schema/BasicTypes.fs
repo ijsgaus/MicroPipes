@@ -15,18 +15,18 @@ type EnumField<'t> =
         Summary : string option
     }
 
-type EnumTypeDescription<'t> =
+type EnumType<'t> =
     {
         IsFlag : bool
         Values : HashMap<IdentifierIgnoreCaseEq, Identifier, EnumField<'t>>
     }
     
-type EnumTypeDescription =
-    | Enum8u  of EnumTypeDescription<byte>
-    | Enum8   of EnumTypeDescription<sbyte>
-    | Enum16  of EnumTypeDescription<int16>
-    | Enum16u of EnumTypeDescription<uint16>
-    | Enum32  of EnumTypeDescription<int32>
-    | Enum32u of EnumTypeDescription<uint32>
-    | Enum64  of EnumTypeDescription<int64>
-    | Enum64u of EnumTypeDescription<uint64>
+type EnumType =
+    | Enum8u  of EnumType<byte>
+    | Enum8   of EnumType<sbyte>
+    | Enum16  of EnumType<int16>
+    | Enum16u of EnumType<uint16>
+    | Enum32  of EnumType<int32>
+    | Enum32u of EnumType<uint32>
+    | Enum64  of EnumType<int64>
+    | Enum64u of EnumType<uint64>

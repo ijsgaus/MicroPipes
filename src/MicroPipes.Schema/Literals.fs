@@ -2,38 +2,22 @@ module MicroPipes.Schema.Literals
 open System
 open Aliases
 
+type Basic =
+    | SignedOrdinal of int64
+    | UnsignedOrdinal of uint64
+    | Float of float
+    | String of string
+    | Uuid of Guid
+    | Bool of bool
+    | DT of DateTime
+    | DTO of DateTimeOffset
+    | TS of TimeSpan
+    | Id of QualifiedIdentifier
+    | None
 
-type OrdinalLiteral =
-    | U8Literal of byte
-    | I8Literal of sbyte
-    | U16Literal of uint16
-    | I16Literal of int16
-    | U32Literal of uint32
-    | I32Literal of int32
-    | U64Literal of uint64
-    | I64Literal of int64
-
-
-type BasicLiteral =
-    | OrdinalLiteral of OrdinalLiteral
-    | F32Literal of float32
-    | F64Literal of float
-    | StringLiteral of string
-    | UuidLiteral of Guid
-    | BoolLiteral of bool
-    | DTLiteral of DateTime
-    | DTOLiteral of DateTimeOffset
-    | TSLiteral of TimeSpan
-    | NoneLiteral
-
-type MapLiteral =
-    | Named of HashMap<IdentifierIgnoreCaseEq, Identifier, Literal>
-    | Indexed of Map<int, Literal>
-    | Botch of HashMap<NameOrIndexEq, NameAndIndex, Literal> 
 and Literal =
-    | Identifier of QualifiedIdentifier
-    | Basic of BasicLiteral 
+    | Basic of Basic 
     | Array of Literal list
-    | Map of MapLiteral
+    | Map of HashMap<string, Literal>
 
 

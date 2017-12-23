@@ -3,61 +3,56 @@ namespace MicroPipes.Schema.Green
 open MicroPipes.Schema
 open Aliases
 
-type TypeReferenceGreen =
+type TypeReference =
     | UnitType
     | BasicType of BasicType
-    | ArrayType of TypeReferenceGreen
-    | MayBeType of TypeReferenceGreen
+    | ArrayType of TypeReference
+    | MayBeType of TypeReference
     | NamedType of QualifiedIdentifier
-    | TupleType of TypeReferenceGreen list
+    | TupleType of TypeReference list
 
 type NamedEntryGreen =
     {
-        Kind : TypeReferenceGreen
+        Name : Identifier
+        Index : int option
+        Kind : TypeReference
         Summary: string option
     }
 
-type StructuredTypeDescriptionGreen =
-    | Indexed of HashMap<NameOrIndexEq, NameAndIndex, NamedEntryGreen>
-    | Named of HashMap<IdentifierIgnoreCaseEq, Identifier, NamedEntryGreen>
-
-     
-
-
 type TypeDeclarationGreen =
-    | EnumType of EnumTypeDescription
-    | MapType of StructuredTypeDescriptionGreen 
-    | OneOfType of StructuredTypeDescriptionGreen
+    | EnumType of EnumType
+    | MapType of NamedEntryGreen list 
+    | OneOfType of NamedEntryGreen list
     | WellKnown 
 
-type TypeDescriptionGreen =
+type TypeGreen =
     {
         Body: TypeDeclarationGreen
         Summary: string option
     }
 
-type ArgumentDescriptionGreen =
+type ArgumentGreen =
     {
         Name : Identifier
-        Type : TypeReferenceGreen
+        Type : TypeReference
         Summary : string option
     }
 
-type CallDescriptionGreen =
+type CallGreen =
     {
-        Arguments : ArgumentDescriptionGreen list
-        Result : TypeReferenceGreen * string option
+        Arguments : ArgumentGreen list
+        Result : TypeReference * string option
         Summary : string option
     }
 
-type EndpointDescriptionGreen =
-    | Event of TypeReferenceGreen
-    | Call of CallDescriptionGreen
+type EndpointGreen =
+    | Event of TypeReference
+    | Call of CallGreen
 
 type ServiceSchemaGreen =
     {
         Name : QualifiedIdentifier
         Version : SemanticVersion
-        Types : HashMap<QualifiedIdentifier, TypeDescriptionGreen>
-        Endpoints: HashMap<QualifiedIdentifier, EndpointDescriptionGreen>
+        Types : QualifiedIdentifier * TypeGreen list
+        Endpoints: QualifiedIdentifier * EndpointGreen list
     }

@@ -86,7 +86,7 @@ namespace MicroPipes.Schema
                 match.Groups["ns"].Captures
                     .Cast<Capture>()
                     .Select(p => new Identifier(p.Value, true))
-                    .Union(new[] {new Identifier(match.Groups["ns"].Value, true)})
+                    .Union(new[] {new Identifier(match.Groups["name"].Value, true)})
                     .ToArray();
         }
     }

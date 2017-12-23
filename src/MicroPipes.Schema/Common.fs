@@ -8,45 +8,52 @@ open System.Text.RegularExpressions
 open Aliases
 
 
-
 type Identifier = 
         private | Identifier of string
+        static member private regEx = Regex("^[A-Za-z][A-Za-z0-9_]*$")
+        static member TryParse(str, [<Out>] id : Identifier byref) =
+            id <- Unchecked.defaultof<Identifier>
+            match Identifier.regEx.IsMatch(str) with
+            | true -> id <- Identifier str; true
+            | _ -> false
+        static member Parse id =
+            match Identifier.TryParse id with
+            | false, _ -> sprintf "Invalid identifier '%s'" id |> invalidArg "id"
+            | _, v -> v
         override __.ToString () = let (Identifier s) = __ in s
 
-module Identifier = 
-    let private idRegEx = Regex("^[A-Za-z][A-Za-z0-9_]*$")
+module Identifier =
+    let parse id = Identifier.Parse id 
+    let tryParse id = 
+        match Identifier.TryParse id with
+        | false, _ -> None
+        | _, v -> Some v
     
-    let pidentifier s =
-        let m = idRegEx.Match s
-        match m.Success with
-        | false -> None
-        | true -> Identifier s |> Some
-         
-type Identifier with                           
-    static member TryCreate (str) =
-        match Identifier.pidentifier str with
-        | Some id ->  id |> Result.Ok
-        | None -> "Invalid identifier" |> Result.Error
-    static member TryMake (str, [<Out>] id : Identifier byref)  = 
-        match Identifier.TryCreate(str) with
-        | Result.Ok s -> id <- s; true
-        | _ -> id <- Unchecked.defaultof<Identifier>; false
-    static member Create s =
-        match Identifier.TryCreate s with
-        | Result.Ok s -> s
-        | Result.Error e -> raise (ArgumentException e)
+    
         
     
 type QualifiedIdentifier =
-    private
-    | Simple of Identifier
-    | Complex of Identifier * QualifiedIdentifier
+    private | Qualified of Identifier array 
     override __.ToString() =
-        let rec toStr qi =
-            match qi with
-            | Simple id -> id.ToString()
-            | Complex (id, qid) -> id.ToString() + "." + (toStr qid)
-        toStr __ 
+        Array.fold 
+    static member private regEx = Regex("^(?:(?<ns>[A-Za-z][A-Za-z0-9_]*)[.])*(?<name>[A-Za-z][A-Za-z0-9_]*)$") 
+    static member TryParse(str, [<Out>] id : QualifiedIdentifier byref) =
+        id <- Unchecked.defaultof<QualifiedIdentifier>
+        let parsed = QualifiedIdentifier.regEx.Match(str)
+        if parsed.Success |> not then false
+        else
+            let lst =
+                 parsed.Groups.["ns"].Captures.Cast<Capture>()
+                    |> Seq.map (fun p -> p.Value |> Identifier.Identifier)
+                    |> Seq.append [ parsed.Groups.["name"].Value |> Identifier.Identifier ]
+                    |> Seq.toList |> List.rev
+            let rec reduce lst =
+                match lst with
+                | [] -> invalidOp "Cannot reached"
+                | [id] -> Identifier id
+                | h :: t -> Qualified(reduce t, h)
+                   
+        
 
 module QualifiedIdentifier =
     /// <summary>
