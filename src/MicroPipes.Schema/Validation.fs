@@ -89,7 +89,7 @@ module Validation =
         |> List.map (fun s -> sprintf "Type '%O': %s" t.Name s)
 
     let validateEndpoint (t : EndpointSchema) =
-        (match t.Defintion with
+        (match t.Definition with
         | Event _ -> []
         | Call cd -> cd.Arguments |> validateArgumentList)
         |> List.map (fun s -> sprintf "Endpoint '%O': %s" t.Name s)
