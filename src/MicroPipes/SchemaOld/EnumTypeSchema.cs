@@ -34,7 +34,7 @@ namespace MicroPipes.SchemaOld
         public override string SchemaName => _green.SchemaName;
 
 
-        public override Type DotNetType => _green.DotNetType.IfNoneDefault();
+        public override Type DotNetType => _green.DotNetType.Unwrap();
         
         public ServiceSchema SetDotNetType(Type type)
         {
@@ -55,7 +55,7 @@ namespace MicroPipes.SchemaOld
         public bool IsFlags => _green.IsFlags;
 
 
-        public IReadOnlyDictionary<string, long> Values => _green.Values;
+        public IReadOnlyDictionary<string, long> Values => _green.Values.ToReadOnlyDictionary();
 
     }
 }

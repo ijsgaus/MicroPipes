@@ -1,11 +1,9 @@
 namespace MicroPipes.Schema
-
 open System
 open System.Linq
 open System.Runtime.InteropServices
 open System.Text
 open System.Text.RegularExpressions
-open Aliases
 
 
 type Identifier = 
@@ -22,224 +20,55 @@ type Identifier =
             | _, v -> v
         override __.ToString () = let (Identifier s) = __ in s
 
-module Identifier =
-    let parse id = Identifier.Parse id 
-    let tryParse id = 
-        match Identifier.TryParse id with
-        | false, _ -> None
-        | _, v -> Some v
-    
-    
-        
-    
 type QualifiedIdentifier =
-    private | Qualified of Identifier array 
+    private | Qualified of Identifier list  
     override __.ToString() =
-        Array.fold 
+        let (Qualified q) = __
+        let sb = StringBuilder()
+        let folder (a : StringBuilder) (id:Identifier) = 
+            if a.Length = 0 then a.Append(id) else a.Append(".").Append(id)
+        (q |> Seq.fold folder sb).ToString()
+    static member Create (head, [<ParamArray>] rest) =
+        Seq.append [ head ] rest |> Seq.toList |> Qualified
     static member private regEx = Regex("^(?:(?<ns>[A-Za-z][A-Za-z0-9_]*)[.])*(?<name>[A-Za-z][A-Za-z0-9_]*)$") 
     static member TryParse(str, [<Out>] id : QualifiedIdentifier byref) =
         id <- Unchecked.defaultof<QualifiedIdentifier>
         let parsed = QualifiedIdentifier.regEx.Match(str)
         if parsed.Success |> not then false
         else
-            let lst =
-                 parsed.Groups.["ns"].Captures.Cast<Capture>()
+            let ns = 
+                parsed.Groups.["ns"].Captures.Cast<Capture>()
                     |> Seq.map (fun p -> p.Value |> Identifier.Identifier)
-                    |> Seq.append [ parsed.Groups.["name"].Value |> Identifier.Identifier ]
-                    |> Seq.toList |> List.rev
-            let rec reduce lst =
-                match lst with
-                | [] -> invalidOp "Cannot reached"
-                | [id] -> Identifier id
-                | h :: t -> Qualified(reduce t, h)
-                   
+            let name = parsed.Groups.["name"].Value |> Identifier.Identifier
+            id <- Seq.append ns [ name ] |> Seq.toList |> Qualified
+            true
+    static member Parse id =
+        match QualifiedIdentifier.TryParse id with
+        | false, _ -> sprintf "Invalid qualified identifier '%s'" id |> invalidArg "id"
+        | _, v -> v
+    member __.Count = let (Qualified a) = __ in a.Length
+    member __.Name = let (Qualified a) = __ in a.[a.Length - 1]
+    member __.Namespace = let (Qualified a) = __ in Seq.take (a.Length - 1) a |> Array.ofSeq 
+    member __.Item(i) = let (Qualified a) = __ in a.[i]
         
-
-module QualifiedIdentifier =
-    /// <summary>
-    /// First identifier in qualified identifier
-    /// </summary>
-    let head qid = match qid with | Simple id | Complex (id, _) -> id
-
-    /// <summary>
-    /// Qualified identifier without first identifier
-    /// </summary>    
-    let rest qid = 
-        match qid with
-        | Simple _ -> None
-        | Complex (_, i) -> i |> Some
+module Identifier =
+    let parse id = Identifier.Parse id 
+    let tryParse id = 
+        match Identifier.TryParse id with
+        | false, _ -> None
+        | _, v -> Some v
+    let create ns name =
+        List.append ns [name] |> Qualified
+    let parseQualified id = QualifiedIdentifier.Parse id
+    let tryParseQualified id = 
+        match QualifiedIdentifier.TryParse id with
+        | false, _ -> None
+        | _, v -> Some v
+    let count (qid : QualifiedIdentifier) = qid.Count
+    let name (qid : QualifiedIdentifier) = qid.Name
+    let nameSpace (qid : QualifiedIdentifier) =
+        let ns = qid.Namespace 
+        if ns.Length = 0 then None else ns |> List.ofSeq |> Qualified |> Some 
         
-    /// <summary>
-    /// Last identifier in quailifier identifier
-    /// </summary>    
-    let rec tail qid =
-        match qid with
-        | Simple t -> t
-        | Complex (_, i) -> tail i
-    
-    /// <summary>
-    /// Qualified identifier without last identifier
-    /// </summary> 
-    let rec start qid =
-        match qid with
-        | Simple _ -> None
-        | Complex (t , r) ->
-            match start r with
-            | None -> Simple t |> Some
-            | Some ci -> Complex(t, ci) |> Some
-
-    /// <summary>
-    /// Identifier count
-    /// </summary> 
-    let count qid = 
-        let rec cnt id acc =
-            match id with
-            | Simple _ -> acc + 1 
-            | Complex(_, r) -> cnt r (acc + 1)
-        cnt qid 0
-    let isAlone qid = match qid with | Simple _ -> true | _ -> false
-
-    let private qidRegEx = Regex("^(?:(?<ns>[A-Za-z][A-Za-z0-9_]*)[.])*(?<name>[A-Za-z][A-Za-z0-9_]*)$")
-    
-    let pqualified s =
-        let rec toQId lst =
-            match lst with
-            | [] -> invalidOp "Empty string mistake" // this cannot be by parser
-            | [p] -> Simple p
-            | h :: t -> Complex (h, toQId t)   
-        let m = qidRegEx.Match(s)
-        match m.Success with
-        | false -> None
-        | true ->
-            let ns = m.Groups.["ns"]
-            let nm = m.Groups.["name"].Captures.[0].Value
-            match ns.Success with
-            | false -> Identifier nm |> Simple |> Some
-            | true ->   
-                ns.Captures.Cast<Capture>() 
-                    |> Seq.map (fun c -> c.Value) 
-                    |> Seq.append [nm]
-                    |> Seq.map Identifier
-                    |> Seq.toList
-                    |> toQId
-                    |> Some    
-    
-type QualifiedIdentifier with 
-    /// <summary>
-    /// First identifier in qualified identifier
-    /// </summary>   
-    member __.Head () = QualifiedIdentifier.head __
-    /// <summary>
-    /// Qualified identifier without first identifier
-    /// </summary>
-    member __.TryGetRest([<Out>] id: _ byref) =
-        match QualifiedIdentifier.rest __ with
-        | Some p -> id <- p; true
-        | None -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
-    /// <summary>
-    /// Last identifier in quailifier identifier
-    /// </summary>  
-    member __.Rest() = QualifiedIdentifier.rest __
-    /// <summary>
-    /// Qualified identifier without last identifier
-    /// </summary> 
-    member __.Start([<Out>] id: _ byref) =
-        match QualifiedIdentifier.start __ with
-        | Some p -> id <- p; true
-        | None -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
-    member __.Count = QualifiedIdentifier.count __
-    member __.IsAlone = QualifiedIdentifier.isAlone __
-    static member TryCreate qi =
-        match QualifiedIdentifier.pqualified qi with
-        | Some id ->  id |> Result.Ok
-        | _ -> "Invalid qualified identifier" |> Result.Error 
-    static member TryMake (str, [<Out>] id : QualifiedIdentifier byref)  = 
-        match QualifiedIdentifier.TryCreate(str) with
-        | Result.Ok s -> id <- s; true
-        | _ -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
-    static member Create s =
-        match QualifiedIdentifier.TryCreate s with
-        | Result.Ok s -> s
-        | Result.Error e -> raise (ArgumentException e)
-   
  
-type SemanticVersion = 
-    {
-        Major : uint16
-        Minor : uint16
-        Build : uint32
-        Prerelease : string option
-        PrereleaseNum : uint16 option
-    }
-    static member private RegEx = Regex("^(?<major>[0-9]+).(?<minor>[0-9]*).(?<build>[0-9]*)(?:(?:\-(?<pre>[a-z]+)(?<num>[0-9]+)?))?$")
-    static member TryParse(s, [<Out>] ver : _ byref) =
-        let p = SemanticVersion.RegEx.Match(s)
-        ver <- { Major = 0us; Minor = 0us; Build = 0u; Prerelease = None; PrereleaseNum = None}
-        match p.Success with
-        | false -> false
-        | _ ->
-            let mjrs = p.Groups.["major"].Value
-            let mnrs = p.Groups.["minor"].Value
-            let blds = p.Groups.["build"].Value
-            let pre = p.Groups.["pre"].Value
-            let pres = p.Groups.["num"].Value
-            match UInt16.TryParse(mjrs) with
-            | false, _ -> false
-            | _, mjr ->
-                match UInt16.TryParse(mnrs) with
-                | false, _ -> false
-                | _, mnr ->
-                    match UInt32.TryParse(blds) with
-                    | false, _ -> false
-                    | _, bld ->
-                        match pre with
-                        | "" ->  
-                            ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = None; PrereleaseNum = None}
-                            true
-                        | _ ->
-                            match pres with
-                            | "" -> 
-                                ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = Some pre; PrereleaseNum = None}
-                                true
-                            match UInt16.TryParse(pres) with
-                            | false, _ -> false
-                            | _, num ->
-                                ver <- { Major = mjr; Minor = mnr; Build = bld; Prerelease = Some pre; PrereleaseNum = Some num}
-                                true
-    static member Parse s =
-        match SemanticVersion.TryParse s with
-        | false, _ -> invalidArg "s" "Invalid version string"
-        | _, v -> v          
-    override __.ToString() = 
-        let bld = StringBuilder()
-        bld.AppendFormat("{0}.{1}.{2}", __.Major, __.Minor, __.Build) |> ignore
-        match __.Prerelease with
-        | Some s -> 
-            bld.AppendFormat("-{0}", s) |> ignore
-            match __.PrereleaseNum with
-            | Some i -> bld.Append(i) |> ignore
-            | None -> ()
-        | None -> ()
-        bld.ToString()
-          
-[<Struct>]    
-type IdentifierIgnoreCaseEq =
-    interface Eq<Identifier> with
-        member __.Equals (x , y) =
-            StringComparer.InvariantCultureIgnoreCase.Equals(x.ToString(), y.ToString())
-        member __.GetHashCode x =
-            StringComparer.InvariantCultureIgnoreCase.GetHashCode (x.ToString())                
 
-type NameAndIndex =
-    {
-        Name : Identifier
-        Index : int
-    }
-
-[<Struct>]
-type NameOrIndexEq =
-    interface Eq<NameAndIndex> with
-        member __.Equals (x, y) =
-            StringComparer.InvariantCultureIgnoreCase.Equals(x.Name.ToString(), y.Name.ToString()) || x.Index = y.Index
-        member __.GetHashCode x =
-            x.Index.GetHashCode()

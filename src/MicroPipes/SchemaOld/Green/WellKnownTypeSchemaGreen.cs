@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+
 using System.Linq;
+using LanguageExt;
 
 namespace MicroPipes.SchemaOld.Green
 {
@@ -44,14 +45,13 @@ namespace MicroPipes.SchemaOld.Green
                 new WellKnownTypeSchemaGreen("unit", typeof(ValueTuple)) 
             };
             
-            ByCode = ImmutableDictionary.CreateRange(lst.Select(p => new KeyValuePair<string, WellKnownTypeSchemaGreen>(p.SchemaName, p)));
-            var byTypeBuilder = ImmutableDictionary.CreateBuilder<Type, WellKnownTypeSchemaGreen>();
-            byTypeBuilder.AddRange(lst.Select(p => new KeyValuePair<Type, WellKnownTypeSchemaGreen>(p.DotNetType.Unwrap(), p)));
-            ByType = byTypeBuilder.ToImmutable();
+            ByCode = HashMap.createRange(lst.Select(p => (p.SchemaName, p)));
+            
+            ByType = HashMap.createRange(lst.Select(p => (p.DotNetType.Unwrap(), p)));
         }
 
-        public static ImmutableDictionary<string, WellKnownTypeSchemaGreen> ByCode { get; }
-        public static ImmutableDictionary<Type, WellKnownTypeSchemaGreen> ByType { get; }
+        public static HashMap<string, WellKnownTypeSchemaGreen> ByCode { get; }
+        public static HashMap<Type, WellKnownTypeSchemaGreen> ByType { get; }
 
     }
 }

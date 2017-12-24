@@ -23,7 +23,7 @@ namespace MicroPipes.SchemaOld
         public override string ContractName => ElementType.ContractName != null ? ElementType.ContractName + "[]" : null;
 
 
-        public override Type DotNetType => Green.DotNetType.IfNoneDefault();
+        public override Type DotNetType => Green.DotNetType.Unwrap();
 
 
         public override bool IsWellKnown => true;

@@ -18,7 +18,7 @@ namespace MicroPipes.SchemaOld
 
         public override string ContractName => _green.SchemaName;
 
-        public override Type DotNetType => _green.DotNetType.IfNoneDefault();
+        public override Type DotNetType => _green.DotNetType.Unwrap();
 
         public override bool IsWellKnown => true;
     }

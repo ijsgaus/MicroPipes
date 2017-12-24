@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Net.Mime;
+using LanguageExt;
 using MicroPipes.Markup.RabbitMq;
 
 namespace MicroPipes.SchemaOld.Green
 {
     public class ServiceSchemaGreen 
     {
-        public ServiceSchemaGreen(string name, string owner, string codeName, ImmutableDictionary<string, EventSchemaGreen> events,
-            ImmutableDictionary<string, CallSchemaGreen> calls, ImmutableDictionary<int, TypeSchemaGreen> types, ContentType contentType = null,
+        public ServiceSchemaGreen(string name, string owner, string codeName, HashMap<string, EventSchemaGreen> events,
+            HashMap<string, CallSchemaGreen> calls, HashMap<int, TypeSchemaGreen> types, ContentType contentType = null,
             ExchangeSchema exchange = null, ExchangeSchema responseExchange = null)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -18,8 +18,8 @@ namespace MicroPipes.SchemaOld.Green
             Name = name;
             Owner = owner;
             CodeName = codeName;
-            Events = events ?? throw new ArgumentNullException(nameof(events));
-            Calls = calls ?? throw new ArgumentNullException(nameof(calls));
+            Events = events;
+            Calls = calls;
             ContentType = contentType;
             if(exchange != null && exchange.Type == ExchangeKind.Fanout)
                 throw new SchemaException($"Invalid exchange type on service level in service {Name} - cannot be Fanout");
@@ -29,7 +29,7 @@ namespace MicroPipes.SchemaOld.Green
                 throw new SchemaException($"Invalid response exchange type on service level in service {Name} - cannot be Fanout");
             if (string.IsNullOrWhiteSpace(codeName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(codeName));
-            Types = types ?? throw new ArgumentNullException(nameof(types));
+            Types = types;
         }
 
         public string Name { get; }
@@ -37,9 +37,9 @@ namespace MicroPipes.SchemaOld.Green
         public string CodeName { get; }
         public ExchangeSchema Exchange { get; }
         public ExchangeSchema ResponseExchange { get; }
-        public ImmutableDictionary<string, EventSchemaGreen> Events { get; }
-        public ImmutableDictionary<string, CallSchemaGreen> Calls { get; }
-        public ImmutableDictionary<int, TypeSchemaGreen> Types { get; }
+        public HashMap<string, EventSchemaGreen> Events { get; }
+        public HashMap<string, CallSchemaGreen> Calls { get; }
+        public HashMap<int, TypeSchemaGreen> Types { get; }
         public ContentType ContentType { get; }
     }
 

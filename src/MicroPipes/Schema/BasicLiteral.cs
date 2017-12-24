@@ -1,97 +1,129 @@
 ﻿using System;
+using System.Data.Common;
 
 namespace MicroPipes.Schema
 {
-    public abstract class BasicLiteral : IEquatable<BasicLiteral>
+    public abstract class BasicLiteral
     {
-        public sealed class OrdLiteral : BasicLiteral
+        public sealed class SignedOrdinalLiteral : BasicLiteral
         {
-            public OrdLiteral(OrdinalLiteral value)
-            {
-                Value = value;
-            }
+            public SignedOrdinalLiteral(long value) => Value = value;
 
-            public OrdinalLiteral Value { get; }
+            public long Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((SignedOrdinalLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class F32Literal : BasicLiteral
+        public sealed class UnsignedOrdinalLiteral : BasicLiteral
         {
-            public F32Literal(float value)
-            {
-                Value = value;
-            }
+            public UnsignedOrdinalLiteral(ulong value) => Value = value;
 
-            public float Value { get; }
+            public ulong Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((UnsignedOrdinalLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class F64Literal : BasicLiteral
+        public sealed class FloatLiteral : BasicLiteral
         {
-            public F64Literal(double value)
-            {
-                Value = value;
-            }
+            public FloatLiteral(double value) => Value = value;
 
             public double Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                => ((FloatLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
         public sealed class StringLiteral : BasicLiteral
         {
-            public StringLiteral(string value)
-            {
-                Value = value ?? throw new ArgumentNullException(nameof(value));
-            }
+            public StringLiteral(string value) => Value = value;
 
             public string Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((StringLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class UuidLiteral : BasicLiteral
+        public sealed class GuidLiteral : BasicLiteral
         {
-            public UuidLiteral(Guid value)
-            {
-                Value = value;
-            }
+            public GuidLiteral(Guid value) => Value = value;
 
             public Guid Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((GuidLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
         public sealed class BoolLiteral : BasicLiteral
         {
-            public BoolLiteral(bool value)
-            {
-                Value = value;
-            }
+            public BoolLiteral(bool value) => Value = value;
 
             public bool Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((BoolLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class DTLiteral : BasicLiteral
+        public sealed class DateTimeLiteral : BasicLiteral
         {
-            public DTLiteral(DateTime value)
-            {
-                Value = value;
-            }
+            public DateTimeLiteral(DateTime value) => Value = value;
 
             public DateTime Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((DateTimeLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class DTOLiteral : BasicLiteral
+        public sealed class DateTimeOffsetLiteral : BasicLiteral
         {
-            public DTOLiteral(DateTimeOffset value)
-            {
-                Value = value;
-            }
+            public DateTimeOffsetLiteral(DateTimeOffset value) => Value = value;
 
             public DateTimeOffset Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((DateTimeOffsetLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class TSLiteral : BasicLiteral
+        public sealed class TimeSpanLiteral : BasicLiteral
         {
-            public TSLiteral(TimeSpan value)
-            {
-                Value = value;
-            }
+            public TimeSpanLiteral(TimeSpan value) => Value = value;
 
             public TimeSpan Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((TimeSpanLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
+        }
+        
+        public sealed class IdentifierLiteral : BasicLiteral
+        {
+            public IdentifierLiteral(QualifiedIdentifier value) => Value = value;
+
+            public QualifiedIdentifier Value { get; }
+
+            protected override bool Equals(BasicLiteral other)
+                => ((IdentifierLiteral) other).Value == Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
         public sealed class NoneLiteral : BasicLiteral
@@ -99,53 +131,51 @@ namespace MicroPipes.Schema
             private NoneLiteral()
             {
             }
+
+            protected override bool Equals(BasicLiteral other)
+                => true;
+
+            public override int GetHashCode() => typeof(NoneLiteral).GetHashCode();
             
-            public static readonly NoneLiteral Value = new NoneLiteral();
+            public static NoneLiteral None = new NoneLiteral(); 
         }
-    
-        public static BasicLiteral Ordinal(OrdinalLiteral ordinal) => new OrdLiteral(ordinal);
-        public static BasicLiteral F32(float value) => new F32Literal(value);
-        public static BasicLiteral F64(double value) => new F64Literal(value);
+        
+        public static BasicLiteral Signed(long value) => new SignedOrdinalLiteral(value);
+        public static BasicLiteral Unsigned(ulong value) => new UnsignedOrdinalLiteral(value);
+        public static BasicLiteral Float(double value) => new FloatLiteral(value);
         public static BasicLiteral String(string value) => new StringLiteral(value);
-        public static BasicLiteral Uuid(Guid value) => new UuidLiteral(value);
+        public static BasicLiteral Guid(Guid value) => new GuidLiteral(value);
         public static BasicLiteral Bool(bool value) => new BoolLiteral(value);
-        public static BasicLiteral DT(DateTime value) => new DTLiteral(value);
-        public static BasicLiteral DTO(DateTimeOffset value) => new DTOLiteral(value);
-        public static BasicLiteral TS(TimeSpan value) => new TSLiteral(value);
-        public static BasicLiteral None => NoneLiteral.Value;
+        public static BasicLiteral DateTime(DateTime value) => new DateTimeLiteral(value);
+        public static BasicLiteral DateTimeOffset(DateTimeOffset value) => new DateTimeOffsetLiteral(value);
+        public static BasicLiteral TimeSpan(TimeSpan value) => new TimeSpanLiteral(value);
+        public static BasicLiteral Id(QualifiedIdentifier value) => new IdentifierLiteral(value);
+        public static BasicLiteral None => NoneLiteral.None;
 
-        public bool Equals(BasicLiteral other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (other.GetType() != GetType()) return false;
-            switch (this)
-            {
-                case OrdLiteral ord:
-                    return ord.Value == ((OrdLiteral) other).Value;
-                case F32Literal f32:
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return f32.Value == ((F32Literal) other).Value;
-                case F64Literal f64:
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return f64.Value == ((F64Literal) other).Value;
-                case StringLiteral str:
-                    return str.Value == ((StringLiteral) other).Value;
-                case UuidLiteral uuid:
-                    return uuid.Value == ((UuidLiteral) other).Value;
-                case BoolLiteral fl:
-                    return fl.Value == ((BoolLiteral) other).Value;
-                case DTLiteral dt:
-                    return dt.Value == ((DTLiteral) other).Value;
-                case DTOLiteral dto:
-                    return dto.Value == ((DTOLiteral) other).Value;
-                case TSLiteral ts:
-                    return ts.Value == ((TSLiteral) other).Value;
-                case NoneLiteral _:
-                    return true;
-            }
+        public static implicit operator BasicLiteral(byte value) => Unsigned(value);
+        public static implicit operator BasicLiteral(ushort value) => Unsigned(value);
+        public static implicit operator BasicLiteral(uint value) => Unsigned(value);
+        public static implicit operator BasicLiteral(ulong value) => Unsigned(value);
+        public static implicit operator BasicLiteral(sbyte value) => Signed(value);
+        public static implicit operator BasicLiteral(short value) => Signed(value);
+        public static implicit operator BasicLiteral(int value) => Signed(value);
+        public static implicit operator BasicLiteral(long value) => Signed(value);
+        
+        public static implicit operator BasicLiteral(float value) => Float(value);
+        public static implicit operator BasicLiteral(double value) => Float(value);
+        
+        public static implicit operator BasicLiteral(string value) => String(value);
+        public static implicit operator BasicLiteral(Guid value) => Guid(value);
+        public static implicit operator BasicLiteral(bool value) => Bool(value);
+        public static implicit operator BasicLiteral(DateTime value) => DateTime(value);
+        public static implicit operator BasicLiteral(DateTimeOffset value) => DateTimeOffset(value);
+        public static implicit operator BasicLiteral(TimeSpan value) => TimeSpan(value);
+        public static implicit operator BasicLiteral(Identifier value) => Id(new QualifiedIdentifier(value));
+        public static implicit operator BasicLiteral(QualifiedIdentifier value) => Id(value);
 
-            return false;
-        }
+
+        protected abstract bool Equals(BasicLiteral other);
+        
 
         public override bool Equals(object obj)
         {
@@ -157,31 +187,7 @@ namespace MicroPipes.Schema
 
         public override int GetHashCode()
         {
-            switch (this)
-            {
-                case OrdLiteral ord:
-                    return ord.Value.GetHashCode();
-                case F32Literal f32:
-                    return f32.Value.GetHashCode();
-                case F64Literal f64:
-                    return f64.Value.GetHashCode();
-                case StringLiteral str:
-                    return str.Value.GetHashCode();
-                case UuidLiteral uuid:
-                    return uuid.Value.GetHashCode();
-                case BoolLiteral fl:
-                    return fl.Value.GetHashCode();
-                case DTLiteral dt:
-                    return dt.Value.GetHashCode();
-                case DTOLiteral dto:
-                    return dto.Value.GetHashCode();
-                case TSLiteral ts:
-                    return ts.Value.GetHashCode();
-                case NoneLiteral _:
-                    return typeof(NoneLiteral).GetHashCode();
-            }
-
-            return 0;
+            throw new NotImplementedException();
         }
 
         public static bool operator ==(BasicLiteral left, BasicLiteral right)
@@ -192,6 +198,11 @@ namespace MicroPipes.Schema
         public static bool operator !=(BasicLiteral left, BasicLiteral right)
         {
             return !Equals(left, right);
+        }
+
+
+        private BasicLiteral()
+        {
         }
     }
 }

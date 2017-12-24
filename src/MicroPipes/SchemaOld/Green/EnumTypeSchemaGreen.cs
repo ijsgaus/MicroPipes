@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Immutable;
+using LanguageExt;
 
 namespace MicroPipes.SchemaOld.Green
 {
@@ -7,7 +7,7 @@ namespace MicroPipes.SchemaOld.Green
     {
         public EnumTypeSchemaGreen(Option<Type> dotNetType,
             string schemaName, string codeName, string contractName,
-            int baseTypeId, bool isFlags, ImmutableDictionary<string, long> values) : base(dotNetType, false)
+            int baseTypeId, bool isFlags, HashMap<string, long> values) : base(dotNetType, false)
         {
             SchemaName = schemaName;
             CodeName = codeName;
@@ -18,7 +18,7 @@ namespace MicroPipes.SchemaOld.Green
         }
 
         public EnumTypeSchemaGreen(TypeSchemaGreen @base, Option<Type> dotNetType, 
-            string schemaName, string codeName, string contractName, int baseTypeId, bool isFlags, ImmutableDictionary<string, long> values) : base(@base, dotNetType, false)
+            string schemaName, string codeName, string contractName, int baseTypeId, bool isFlags, HashMap<string, long> values) : base(@base, dotNetType, false)
         {
             SchemaName = schemaName;
             CodeName = codeName;
@@ -33,6 +33,6 @@ namespace MicroPipes.SchemaOld.Green
         public string ContractName { get; }
         public int BaseTypeId { get; }
         public bool IsFlags { get; }
-        public ImmutableDictionary<string, long> Values { get; }  
+        public HashMap<string, long> Values { get; }  
     }
 }

@@ -1,16 +1,21 @@
 namespace MicroPipes.Schema
 
-open Aliases
+
 
 type OrdinalType =
     | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64
+
+type FloatType =
+    | F32 | F64
     
 type BasicType =
     | Ordinal of OrdinalType
-    | F32 | F64 | String | Uuid | DT | DTO | TS | Bool | Url
+    | Float of FloatType
+    | String | Uuid | DT | DTO | TS | Bool | Url
     
 type EnumField<'t> =
     {
+        Name : Identifier
         Value : 't
         Summary : string option
     }
@@ -18,7 +23,7 @@ type EnumField<'t> =
 type EnumType<'t> =
     {
         IsFlag : bool
-        Values : HashMap<IdentifierIgnoreCaseEq, Identifier, EnumField<'t>>
+        Values : EnumField<'t> list
     }
     
 type EnumType =

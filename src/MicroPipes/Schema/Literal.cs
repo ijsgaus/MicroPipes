@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
+using LanguageExt;
 
 namespace MicroPipes.Schema
 {
-    public abstract class Literal : IEquatable<Literal>
+    public abstract class Literal 
     {
         private Literal()
         {
@@ -14,118 +15,93 @@ namespace MicroPipes.Schema
         public sealed class MapLiteral : Literal
         {
 
-            public MapLiteral(ImmutableDictionary<string, Literal> map)
+            public MapLiteral(HashMap<string, Literal> map) => Value = map;
+
+            public MapLiteral(params (string, Literal)[] values) : this((IEnumerable<(string, Literal)>) values)
             {
-                Value = map;
+                
+            }
+                 
+            public MapLiteral(IEnumerable<(string, Literal)> values)
+            {
+                Value = HashMap.createRange(values);
             }
 
-            public MapLiteral(params (string, Literal)[] values)
-            {
-                Value = ImmutableDictionary.CreateRange(values.Select(p =>
-                    new KeyValuePair<string, Literal>(p.Item1, p.Item2)));
-            }
+            public HashMap<string, Literal> Value { get; }
 
-            public ImmutableDictionary<string, Literal> Value { get; }
+            protected override bool Equals(Literal other)
+                => Equals(Value, ((MapLiteral) other).Value);
+
+            public override int GetHashCode() => Value.GetHashCode();
+
         }
         
         public sealed class ArrayLiteral : Literal
         {
 
-            public ArrayLiteral(ImmutableList<Literal> array)
-            {
-                Value = array;
-            }
+            public ArrayLiteral(Arr<Literal> array) => Value = array;
 
-            public ArrayLiteral(params Literal[] values)
-            {
-                Value = ImmutableList.CreateRange(values);
-            }
+            public ArrayLiteral(params Literal[] values) => Value = Arr.createRange(values);
+            
+            public ArrayLiteral(IEnumerable<Literal> values) => Value = Arr.createRange(values);
 
-            public ImmutableList<Literal> Value { get; }
+            public Arr<Literal> Value { get; }
+
+            protected override bool Equals(Literal other)
+                => Equals(Value, ((ArrayLiteral) other).Value);
+            
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
         public sealed class BasicLiteral : Literal
         {
             public Schema.BasicLiteral Value { get; }
 
-            public BasicLiteral(Schema.BasicLiteral value)
-            {
-                Value = value;
-            }
-            
+            public BasicLiteral(Schema.BasicLiteral value) => Value = value;
+
+            protected override bool Equals(Literal other)
+                => Value == ((BasicLiteral) other).Value;
+
+            public override int GetHashCode() => Value.GetHashCode();
         }
         
-        public sealed class IdentifierLiteral : Literal
-        {
-            public QualifiedIdentifier Value { get; }
+        public static Literal Map(HashMap<string, Literal> map) => new MapLiteral(map);
+        public static Literal Map(IEnumerable<(string, Literal)> map) => new MapLiteral(map);
+        public static Literal Map(params (string, Literal)[] map) => new MapLiteral(map);
+        public static Literal Map(IEnumerable<KeyValuePair<string, Literal>> map) => new MapLiteral(map.Select(p => (p.Key, p.Value)));
+        
+        public static Literal Array(Arr<Literal> arr) => new ArrayLiteral(arr);
+        public static Literal Array(IEnumerable<Literal> arr) => new ArrayLiteral(arr);
+        public static Literal Array(params Literal[] arr) => new ArrayLiteral(arr);
+        
+        public static Literal Basic(Schema.BasicLiteral literal) => new BasicLiteral(literal);
 
-            public IdentifierLiteral(QualifiedIdentifier value)
-            {
-                Value = value ?? throw new ArgumentNullException(nameof(value));
-            }
-        }
+        public static implicit operator Literal(Schema.BasicLiteral literal) => Basic(literal);
         
-        public static Literal Map(ImmutableDictionary<string, Literal> map)
-            => new MapLiteral(map);
+        public static implicit operator Literal(HashMap<string, Literal> map) => new MapLiteral(map);
+        public static implicit operator Literal((string, Literal)[] map) => new MapLiteral(map);
+        public static implicit operator Literal(Dictionary<string, Literal> map) => new MapLiteral(map.Select(p => (p.Key, p.Value)));
         
-        public static Literal Map(params (string, Literal)[] values)
-            => new MapLiteral(values);
+        public static implicit operator Literal(Arr<Literal> arr) => new ArrayLiteral(arr);
+        public static implicit operator Literal(Collection<Literal> arr) => new ArrayLiteral(arr.AsEnumerable());
+        public static implicit operator Literal(Literal[] arr) => new ArrayLiteral(arr);
         
-        public static Literal Array(ImmutableList<Literal> array)
-            => new ArrayLiteral(array);
         
-        public static Literal Array(params Literal[] values)
-            => new ArrayLiteral(values);
-        
-        public static Literal Basic(Schema.BasicLiteral value)
-            => new BasicLiteral(value);
-        
-        public static Literal Identifier(QualifiedIdentifier value)
-            => new IdentifierLiteral(value);
         
 
-        public bool Equals(Literal other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (other.GetType() != GetType()) return false;
-            switch (this)
-            {
-                case ArrayLiteral array:
-                    return array.Value.Equals(((ArrayLiteral) other).Value);
-                case BasicLiteral basic:
-                    return basic.Value.Equals(((BasicLiteral) other).Value);
-                case IdentifierLiteral id:
-                    return id.Value == ((IdentifierLiteral) other).Value;
-                case MapLiteral map:
-                    return map.Value.Equals(((MapLiteral) other).Value);
-            }
-
-            return false;
-        }
+        protected abstract bool Equals(Literal other);
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Literal) obj);
         }
 
         public override int GetHashCode()
         {
-            switch (this)
-            {
-                case ArrayLiteral array:
-                    return array.Value.GetHashCode();
-                case BasicLiteral basic:
-                    return basic.Value.GetHashCode();
-                case IdentifierLiteral id:
-                    return id.Value.GetHashCode();
-                case MapLiteral map:
-                    return map.Value.GetHashCode();
-            }
-
-            return 0;
+            throw new NotImplementedException();
         }
 
         public static bool operator ==(Literal left, Literal right)

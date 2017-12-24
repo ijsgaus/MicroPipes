@@ -23,7 +23,7 @@ namespace MicroPipes.SchemaOld
         public override string SchemaName => ElementType.SchemaName != null ? ElementType.SchemaName + "?" : null;
 
 
-        public override Type DotNetType => _green.DotNetType.IfNoneDefault();
+        public override Type DotNetType => _green.DotNetType.Unwrap();
 
 
         public override bool IsWellKnown => true;

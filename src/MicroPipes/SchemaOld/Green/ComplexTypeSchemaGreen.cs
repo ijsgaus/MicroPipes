@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Immutable;
+using LanguageExt;
 
 namespace MicroPipes.SchemaOld.Green
 {
     public class ComplexTypeSchemaGreen : TypeSchemaGreen
     {
         public ComplexTypeSchemaGreen(Option<Type> dotNetType, string schemaName, string codeName, string contractName,
-            int? baseTypeId, bool isStruct, ImmutableDictionary<string, int> fields) : base(dotNetType, false)
+            int? baseTypeId, bool isStruct, HashMap<string, int> fields) : base(dotNetType, false)
         {
             SchemaName = schemaName;
             CodeName = codeName;
@@ -18,7 +18,7 @@ namespace MicroPipes.SchemaOld.Green
 
         public ComplexTypeSchemaGreen(TypeSchemaGreen @base, Option<Type> dotNetType, string schemaName,
             string codeName, string contractName, int? baseTypeId, bool isStruct,
-            ImmutableDictionary<string, int> fields) : base(@base, dotNetType, false)
+            HashMap<string, int> fields) : base(@base, dotNetType, false)
         {
             SchemaName = schemaName;
             CodeName = codeName;
@@ -33,6 +33,6 @@ namespace MicroPipes.SchemaOld.Green
         public string ContractName { get; }
         public int? BaseTypeId { get; }
         public bool IsStruct { get; }
-        public ImmutableDictionary<string, int> Fields { get; }
+        public HashMap<string, int> Fields { get; }
     }
 }

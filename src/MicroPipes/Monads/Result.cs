@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+/*
 namespace MicroPipes
 {
     public struct Result<T> : IEquatable<Result<T>>
@@ -206,3 +207,4 @@ namespace MicroPipes
     
     
 }
+*/

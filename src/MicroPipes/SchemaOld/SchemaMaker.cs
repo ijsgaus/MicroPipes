@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using LanguageExt;
 using MicroPipes.Markup;
 using MicroPipes.SchemaOld.Green;
 
@@ -11,7 +11,7 @@ namespace MicroPipes.SchemaOld
 {
     public static class SchemaMaker
     {
-        public static ImmutableDictionary<int, TypeSchemaGreen> FromTypeList(ICollection<(Type[], Action<int[]>)> types, bool contractFromName)
+        public static HashMap<int, TypeSchemaGreen> FromTypeList(ICollection<(Type[], Action<int[]>)> types, bool contractFromName)
         {
             var knownMaps = new Dictionary<Type, TypeSchemaGreen>();
             var toProcess = new Stack<Type>();
@@ -33,7 +33,7 @@ namespace MicroPipes.SchemaOld
                 var desc =  typeToCall.Select(p => knownMaps[p]).ToArray();
                 action(desc.Select(p => p.Id).ToArray());
             }
-            return ImmutableDictionary.CreateRange(knownMaps.Values.Select(p => new KeyValuePair<int, TypeSchemaGreen>(p.Id, p)));
+            return HashMap.createRange(knownMaps.Values.Select(p => (p.Id, p)));
 
         }
 
@@ -82,9 +82,9 @@ namespace MicroPipes.SchemaOld
                 var enumType =
                     new EnumTypeSchemaGreen(type, schemaName, NormalizeName(type), contract, baseTypeId,
                         type.GetCustomAttribute<FlagsAttribute>() != null,
-                        ImmutableDictionary.CreateRange(
+                        HashMap.createRange(
                             Enum.GetValues(type).Cast<object>().Select(p => (p, Convert.ToInt64(p))).Select(p =>
-                                new KeyValuePair<string, long>(Enum.GetName(type, p.Item1), p.Item2))));
+                                (Enum.GetName(type, p.Item1), p.Item2))));
                 known.Add(type, enumType);
                 return enumType.Id;
             }
@@ -93,7 +93,7 @@ namespace MicroPipes.SchemaOld
                 var contract = contractName ?? type.GetCustomAttribute<ContractAttribute>()?.Name ??
                                (contractFromName ? ContractFromName(type.Name) : null);
                 var schemaName = type.GetCustomAttribute<SchemaNameAttribute>()?.Name ?? NormalizeName(type);
-                var desc = new ComplexTypeSchemaGreen(type, schemaName, NormalizeName(type), contract, -1, false, ImmutableDictionary<string, int>.Empty);
+                var desc = new ComplexTypeSchemaGreen(type, schemaName, NormalizeName(type), contract, -1, false, HashMap<string, int>.Empty);
                 known.Add(type, desc);
                 int? baseTypeId = null;
                 var baseType = type.BaseType;
@@ -103,7 +103,7 @@ namespace MicroPipes.SchemaOld
                 var propQuery = type.GetProperties().Where(p => p.DeclaringType == type)
                     .Select(p => new KeyValuePair<string, int>(p.Name, ProcessType(p.PropertyType, null, contractFromName, known)));
                 known[type] = new ComplexTypeSchemaGreen(desc, type, schemaName, NormalizeName(type), contract, baseTypeId, false,
-                    ImmutableDictionary.CreateRange(propQuery));
+                    HashMap.createRange(propQuery));
                     
                 foreach (var attribute in type.GetCustomAttributes<KnownContractAttribute>())
                 {
@@ -117,14 +117,14 @@ namespace MicroPipes.SchemaOld
                 var contract = type.GetCustomAttribute<ContractAttribute>()?.Name ??
                                (contractFromName ? ContractFromName(type.Name) : null);
                 var schemaName = type.GetCustomAttribute<SchemaNameAttribute>()?.Name ?? NormalizeName(type);
-                var desc = new ComplexTypeSchemaGreen(type, schemaName, NormalizeName(type), contract, null, true, ImmutableDictionary<string, int>.Empty);
+                var desc = new ComplexTypeSchemaGreen(type, schemaName, NormalizeName(type), contract, null, true, HashMap<string, int>.Empty);
                 known.Add(type, desc);
                 
                 
                 var propQuery = type.GetProperties()
                     .Select(p => new KeyValuePair<string, int>(p.Name, ProcessType(p.PropertyType, null, contractFromName, known)));
                 known[type] = new ComplexTypeSchemaGreen(desc, type, schemaName, NormalizeName(type), contract, null, true,
-                    ImmutableDictionary.CreateRange(propQuery));
+                    HashMap.createRange(propQuery));
                 return desc.Id;
             }
             

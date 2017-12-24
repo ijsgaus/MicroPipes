@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+/*
 namespace MicroPipes
 {
     public struct Option<T>
@@ -168,3 +168,4 @@ namespace MicroPipes
         }
     }
 }
+*/

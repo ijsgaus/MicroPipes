@@ -13,6 +13,15 @@ namespace MicroPipes.Schema
             if (names.Length == 0) throw new ArgumentException("Value cannot be an empty collection.", nameof(names));
             Names = names;
         }
+        
+        public QualifiedIdentifier(Identifier name)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            Names = new [] {name};
+        }
+        
+        
+        
 
         public QualifiedIdentifier(string value)
         {

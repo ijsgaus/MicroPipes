@@ -1,58 +1,79 @@
 namespace MicroPipes.Schema.Green
 
 open MicroPipes.Schema
-open Aliases
+open NuGet.Versioning
+open MicroPipes.Schema.Literals
 
 type TypeReference =
-    | UnitType
-    | BasicType of BasicType
-    | ArrayType of TypeReference
-    | MayBeType of TypeReference
-    | NamedType of QualifiedIdentifier
-    | TupleType of TypeReference list
+    | Unit
+    | Basic of BasicType
+    | Array of TypeReference
+    | MayBe of TypeReference
+    | Reference of QualifiedIdentifier
+    | Tuple of TypeReference list
 
-type NamedEntryGreen =
+type NamedEntry =
     {
         Name : Identifier
         Index : int option
-        Kind : TypeReference
+        Type : TypeReference
         Summary: string option
     }
 
-type TypeDeclarationGreen =
+type TypeDefinition =
     | EnumType of EnumType
-    | MapType of NamedEntryGreen list 
-    | OneOfType of NamedEntryGreen list
-    | WellKnown 
+    | MapType of NamedEntry list 
+    | OneOfType of NamedEntry list
 
-type TypeGreen =
+type TypeDeclaration =
     {
-        Body: TypeDeclarationGreen
+        Body: TypeDefinition
         Summary: string option
     }
 
-type ArgumentGreen =
+type Argument =
     {
         Name : Identifier
         Type : TypeReference
         Summary : string option
     }
 
-type CallGreen =
+type CallDefinition =
     {
-        Arguments : ArgumentGreen list
+        Arguments : Argument list
         Result : TypeReference * string option
-        Summary : string option
+
     }
 
-type EndpointGreen =
-    | Event of TypeReference
-    | Call of CallGreen
+type EventDefinition =
+    {
+        EventType : TypeReference
+    }
 
-type ServiceSchemaGreen =
+type EndpointDefinition =
+    | Event of EventDefinition
+    | Call of CallDefinition
+
+type EndpointSchema =
+    {
+        Name : QualifiedIdentifier
+        Definition : EndpointDefinition 
+        Summary : string option        
+        Transports : Map<QualifiedIdentifier, Literal>
+    }
+
+type NamedSchemaEntry<'def> =
+    {
+        Name : QualifiedIdentifier
+        Defintion : 'def
+    }
+
+
+type ServiceSchema =
     {
         Name : QualifiedIdentifier
         Version : SemanticVersion
-        Types : QualifiedIdentifier * TypeGreen list
-        Endpoints: QualifiedIdentifier * EndpointGreen list
+        Types : NamedSchemaEntry<TypeDeclaration> list
+        Endpoints: EndpointSchema list
     }
+

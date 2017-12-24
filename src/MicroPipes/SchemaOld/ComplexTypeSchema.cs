@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using LanguageExt;
 using MicroPipes.SchemaOld.Green;
 
 namespace MicroPipes.SchemaOld
@@ -9,21 +9,15 @@ namespace MicroPipes.SchemaOld
     public class ComplexTypeSchema : TypeSchema
     {
         private readonly ComplexTypeSchemaGreen _green;
-        private Lazy<ImmutableDictionary<string, TypeSchema>> _lazyFields;
+        private Lazy<HashMap<string, TypeSchema>> _lazyFields;
         public ServiceSchema Service { get; }
 
         public ComplexTypeSchema(ServiceSchema service, ComplexTypeSchemaGreen green)
         {
             _green = green;
             Service = service;
-            _lazyFields = new Lazy<ImmutableDictionary<string, TypeSchema>>(
-                () =>
-                {
-                    var builder = ImmutableDictionary.CreateBuilder<string, TypeSchema>();
-                    builder.AddRange(_green.Fields.Select(p =>
-                        new KeyValuePair<string, TypeSchema>(p.Key, Service.TypeById(p.Value))));
-                    return builder.ToImmutable();
-                });
+            _lazyFields = new Lazy<HashMap<string, TypeSchema>>(
+                    () => _green.Fields.Map(p => Service.TypeById(p)));
         }
 
         public override string ContractName => _green.ContractName;
@@ -45,7 +39,7 @@ namespace MicroPipes.SchemaOld
         public override string SchemaName => _green.SchemaName;
 
 
-        public override Type DotNetType => _green.DotNetType.IfNoneDefault();
+        public override Type DotNetType => _green.DotNetType.Unwrap();
 
 
         public override bool IsWellKnown => false;
@@ -59,7 +53,7 @@ namespace MicroPipes.SchemaOld
 
 
 
-        public IReadOnlyDictionary<string, TypeSchema> Fields => _lazyFields.Value;
+        public IReadOnlyDictionary<string, TypeSchema> Fields => _lazyFields.Value.ToReadOnlyDictionary();
 
     }
 }

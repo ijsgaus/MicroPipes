@@ -3,9 +3,9 @@
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <ProjectReference Include="..\MicroPipes.Markup\MicroPipes.Markup.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MicroPipes.Markup\MicroPipes.Markup.csproj" />
+    <PackageReference Include="LanguageExt.Core" Version="2.1.32" />
   </ItemGroup>
 </Project>

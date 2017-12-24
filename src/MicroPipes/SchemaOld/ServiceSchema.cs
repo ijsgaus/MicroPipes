@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Mime;
 using System.Reflection;
 using System.Text;
+using LanguageExt;
 using MicroPipes.Markup;
 using MicroPipes.Markup.RabbitMq;
 using MicroPipes.SchemaOld.Green;
@@ -14,33 +14,30 @@ namespace MicroPipes.SchemaOld
 
     public class ServiceSchema 
     {
-        private readonly ImmutableDictionary<string, Lazy<CallSchema>> _lazyCallByName;
-        private readonly ImmutableDictionary<string, string> _callNameByCodeName;
-        private readonly ImmutableDictionary<string, Lazy<EventSchema>> _lazyEventByName;
-        private readonly ImmutableDictionary<string, string> _eventNameByCodeName;
-        private readonly ImmutableDictionary<int, Lazy<TypeSchema>> _lazyTypes;
+        private readonly HashMap<string, Lazy<CallSchema>> _lazyCallByName;
+        private readonly HashMap<string, string> _callNameByCodeName;
+        private readonly HashMap<string, Lazy<EventSchema>> _lazyEventByName;
+        private readonly HashMap<string, string> _eventNameByCodeName;
+        private readonly HashMap<int, Lazy<TypeSchema>> _lazyTypes;
         private readonly Lazy<ExchangeSchema> _lazyExchange;
         private readonly Lazy<ExchangeSchema> _lazyResponseExchange;
         
         public ServiceSchema(ServiceSchemaGreen greenSchema)
         {
             Green = greenSchema;
-            _lazyCallByName = ImmutableDictionary.CreateRange(greenSchema.Calls.Select(
-                p => new KeyValuePair<string, Lazy<CallSchema>>(p.Key,
-                    new Lazy<CallSchema>(() => new CallSchema(this, p.Value)))));
+            _lazyCallByName = greenSchema.Calls.Map(
+                p => new Lazy<CallSchema>(() => new CallSchema(this, p)));
              
-            _callNameByCodeName = ImmutableDictionary.CreateRange(greenSchema.Calls.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
+            _callNameByCodeName =
+                HashMap.createRange(greenSchema.Calls.Select(p => (p.Item2.CodeName, p.Item1)));
              
-            _lazyEventByName = ImmutableDictionary.CreateRange(greenSchema.Events.Select(
-                p => new KeyValuePair<string, Lazy<EventSchema>>(p.Key,
-                    new Lazy<EventSchema>(() => new EventSchema(this, p.Value)))));
-            _eventNameByCodeName = ImmutableDictionary.CreateRange(greenSchema.Events.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
+            _lazyEventByName = greenSchema.Events.Map(p => new Lazy<EventSchema>(() => new EventSchema(this, p)));
+            _eventNameByCodeName = HashMap.createRange(greenSchema.Events.Select(p => (p.Item2.CodeName, p.Item1)));
 
-            _lazyTypes = ImmutableDictionary.CreateRange(greenSchema.Types.Select(p =>
-                new KeyValuePair<int, Lazy<TypeSchema>>(
-                    p.Key, new Lazy<TypeSchema>(() =>
+            _lazyTypes = greenSchema.Types.Map(p =>
+                new Lazy<TypeSchema>(() =>
                     {
-                        switch (p.Value)
+                        switch (p)
                         {
                             case ArrayTypeSchemaGreen arrayTypeSchemaGreen:
                                 return new ArrayTypeSchema(this, arrayTypeSchemaGreen);
@@ -54,9 +51,9 @@ namespace MicroPipes.SchemaOld
                                 return new WellKnownTypeSchema(wellKnownTypeSchemaGreen);
                             default:
                                 throw new ArgumentOutOfRangeException(
-                                    $"Unknown green type name schema {p.Value?.GetType()}");
+                                    $"Unknown green type name schema {p?.GetType()}");
                         }
-                    }))));
+                    }));
             
             _lazyExchange = new Lazy<ExchangeSchema>(() =>
             {
@@ -296,8 +293,8 @@ namespace MicroPipes.SchemaOld
             }
             var typeDescs = SchemaMaker.FromTypeList(types, false);
             return new ServiceSchema(new ServiceSchemaGreen(name, owner, serviceType.Name, 
-                ImmutableDictionary.CreateRange(events.Select(p => new KeyValuePair<string, EventSchemaGreen>(p.Name, p))), 
-                ImmutableDictionary.CreateRange(calls.Select(p => new KeyValuePair<string, CallSchemaGreen>(p.Name, p))),
+                HashMap.createRange(events.Select(p => (p.Name, p))), 
+                HashMap.createRange(calls.Select(p => (p.Name, p))),
                 typeDescs, serviceType.GetCustomAttribute<ContentTypeAttribute>()?.ContentType,
                 serviceExchange, serviceResponseExchange));
         }
