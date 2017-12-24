@@ -19,8 +19,8 @@ before_build:
 build_script:
   - cmd: dotnet build 
 
-#test_script:
+test_script:
   # run the unit tests (requires changing into the test directory)
-  #- cmd: cd tests
-  #- cmd: cd MicroPipes.Tests
-  #- cmd: dotnet run
+  - cmd: cd tests
+  - cmd: cd MicroPipes.Tests
+  - cmd: dotnet run

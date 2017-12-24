@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
@@ -14,6 +14,8 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MicroPipes.Schema", "src\MicroPipes.Schema\MicroPipes.Schema.fsproj", "{3311671F-089B-4D25-BCE0-BF3778B20504}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxTests", "tests\SyntaxTests\SyntaxTests.csproj", "{6BA8BE73-E2CA-4993-9099-4458E1AF69F4}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MicroPipes.Tests", "tests\MicroPipes.Tests\MicroPipes.Tests.fsproj", "{187D8AC2-07D1-45CA-9B03-994B87425504}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +75,18 @@ Global
 		{6BA8BE73-E2CA-4993-9099-4458E1AF69F4}.Release|x64.Build.0 = Release|Any CPU
 		{6BA8BE73-E2CA-4993-9099-4458E1AF69F4}.Release|x86.ActiveCfg = Release|Any CPU
 		{6BA8BE73-E2CA-4993-9099-4458E1AF69F4}.Release|x86.Build.0 = Release|Any CPU
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|x64.ActiveCfg = Debug|x64
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|x64.Build.0 = Debug|x64
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|x86.ActiveCfg = Debug|x86
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Debug|x86.Build.0 = Debug|x86
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|Any CPU.Build.0 = Release|Any CPU
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|x64.ActiveCfg = Release|x64
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|x64.Build.0 = Release|x64
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|x86.ActiveCfg = Release|x86
+		{187D8AC2-07D1-45CA-9B03-994B87425504}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +96,7 @@ Global
 		{3CACA17A-3715-4A55-9F1E-319F17B0BAFB} = {09F07E12-5964-45C3-BFA4-945258B10E8D}
 		{3311671F-089B-4D25-BCE0-BF3778B20504} = {09F07E12-5964-45C3-BFA4-945258B10E8D}
 		{6BA8BE73-E2CA-4993-9099-4458E1AF69F4} = {E4416BDD-913F-4F18-B509-0757984A2DE8}
+		{187D8AC2-07D1-45CA-9B03-994B87425504} = {E4416BDD-913F-4F18-B509-0757984A2DE8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {00A9C2BC-E5F2-4966-ABAD-03717B56559D}
