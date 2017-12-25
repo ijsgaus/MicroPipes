@@ -24,6 +24,7 @@ type TypeDefinition =
     | EnumType of EnumType
     | MapType of NamedEntry list 
     | OneOfType of NamedEntry list
+    | Wellknown of string option
 
 type TypeDeclaration =
     {
@@ -62,18 +63,19 @@ type EndpointSchema =
         Transports : Map<QualifiedIdentifier, Literal>
     }
 
-type NamedSchemaEntry<'def> =
+type TypeSchema =
     {
         Name : QualifiedIdentifier
-        Defintion : 'def
+        Defintion : TypeDeclaration
     }
+
 
 
 type ServiceSchema =
     {
         Name : QualifiedIdentifier
         Version : SemanticVersion
-        Types : NamedSchemaEntry<TypeDeclaration> list
+        Types : TypeSchema list
         Endpoints: EndpointSchema list
     }
 

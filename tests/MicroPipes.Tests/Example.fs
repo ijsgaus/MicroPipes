@@ -27,6 +27,16 @@ let tests =
         let id = Identifier.parseQualified "Hellow.The.Best.World"
         let nameSpace = Identifier.parseQualified "Hellow.The.Best" |> Some
         Expect.equal "Must equal" (id |> Identifier.nameSpace) nameSpace
+
+      testCase "case insentivity identifier comparison" <| fun _ ->
+        let id1 = Identifier.parse "Hellow"
+        let id2 = Identifier.parse "hellow"
+        Expect.equal "Case insenrivity" id1 id2
+
+      testCase "case insentivity qualified identifier comparison" <| fun _ ->
+        let id1 = Identifier.parseQualified "Hellow.worlD"
+        let id2 = Identifier.parseQualified "hellow.World"
+        Expect.equal "Case insenrivity" id1 id2
     (*testCase "universe exists (╭ರᴥ•́)" <| fun _ ->
       let subject = true
       Expect.isTrue subject "I compute, therefore I am."

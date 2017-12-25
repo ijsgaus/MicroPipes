@@ -5,7 +5,8 @@ open System.Runtime.InteropServices
 open System.Text
 open System.Text.RegularExpressions
 
-
+[<CustomEquality>]
+[<CustomComparison>]
 type Identifier = 
         private | Identifier of string
         static member private regEx = Regex("^[A-Za-z][A-Za-z0-9_]*$")
@@ -19,6 +20,21 @@ type Identifier =
             | false, _ -> sprintf "Invalid identifier '%s'" id |> invalidArg "id"
             | _, v -> v
         override __.ToString () = let (Identifier s) = __ in s
+        override __.Equals o =
+            match o with
+            | null -> false
+            | :? Identifier as i -> (__ :> IEquatable<Identifier>).Equals(i)
+            | _ -> false
+        override __.GetHashCode() = StringComparer.InvariantCultureIgnoreCase.GetHashCode(__.ToString())
+        interface IEquatable<Identifier> with
+            member __.Equals other = 
+                StringComparer.InvariantCultureIgnoreCase.Equals(__.ToString(), other.ToString())
+        interface IComparable with
+            member __.CompareTo other = 
+                match other with
+                | null -> 1
+                | :? Identifier as i -> StringComparer.InvariantCultureIgnoreCase.Compare(__.ToString(), i.ToString())
+                | _ -> invalidOp "Cannot compare Identifier with other type"
 
 type QualifiedIdentifier =
     private | Qualified of Identifier list  

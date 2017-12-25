@@ -73,19 +73,20 @@ module Validation =
         let mkError (key, _) = sprintf "Duplicate argument name '%O'" key
         args |> checkDuplicates (fun p -> p.Name) mkError 
 
-    let validateEntryDuplicates name (ss : NamedSchemaEntry<_> list) =
-        let mkError (key, _) = sprintf "Duplicate '%s' name '%O'" name key
+    let validateTypeDuplicates (ss : TypeSchema list) =
+        let mkError (key, _) = sprintf "Duplicate type name '%O'" key
         ss |> checkDuplicates (fun p -> p.Name) mkError 
 
-    let validateEndpointsDuplicates name (ss : EndpointSchema list) =
-        let mkError (key, _) = sprintf "Duplicate '%s' name '%O'" name key
+    let validateEndpointsDuplicates (ss : EndpointSchema list) =
+        let mkError (key, _) = sprintf "Duplicate endpoint name '%O'" key
         ss |> checkDuplicates (fun p -> p.Name) mkError 
 
-    let validateType (t : NamedSchemaEntry<TypeDeclaration>)=
+    let validateType (t : TypeSchema)=
         (match t.Defintion.Body with
         | EnumType et -> validateEnumType et 
         | MapType mt -> validateNamedEntryList mt
-        | OneOfType ot -> validateNamedEntryList ot)
+        | OneOfType ot -> validateNamedEntryList ot
+        | Wellknown _ -> [])
         |> List.map (fun s -> sprintf "Type '%O': %s" t.Name s)
 
     let validateEndpoint (t : EndpointSchema) =
@@ -96,9 +97,9 @@ module Validation =
 
     let validateSchema schema = 
         [
-            schema.Types |> validateEntryDuplicates "type"
+            schema.Types |> validateTypeDuplicates
             schema.Types |> List.collect validateType
-            schema.Endpoints |> validateEndpointsDuplicates "endpoint"
+            schema.Endpoints |> validateEndpointsDuplicates
             schema.Endpoints |> List.collect validateEndpoint
         ] |> List.concat |> toErrors |> toResult
 
