@@ -1,16 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="Common.fs" />
-    <Compile Include="Literals.fs" />
-    <Compile Include="BasicTypes.fs" />
-    <Compile Include="Green.fs" />
-    <Compile Include="Validation.fs" />
+    <Compile Include="Schema/Common.fs" />
+    <Compile Include="Schema/Literals.fs" />
+    <Compile Include="Schema/BasicTypes.fs" />
+    <Compile Include="Schema/Green.fs" />
+    <Compile Include="Schema/Validation.fs" />
+    <Compile Include="Library.fs" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="LanguageExt.Core" Version="2.1.32" />
     <PackageReference Include="NuGet.Versioning" Version="4.5.0" />
-  </ItemGroup>
+  </ItemGroup> 
+
 </Project>

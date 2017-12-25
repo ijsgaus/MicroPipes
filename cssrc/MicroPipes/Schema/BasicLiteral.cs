@@ -137,7 +137,7 @@ namespace MicroPipes.Schema
 
             public override int GetHashCode() => typeof(NoneLiteral).GetHashCode();
             
-            public static NoneLiteral None = new NoneLiteral(); 
+            public static NoneLiteral NoneValue = new NoneLiteral(); 
         }
         
         public static BasicLiteral Signed(long value) => new SignedOrdinalLiteral(value);
@@ -150,7 +150,7 @@ namespace MicroPipes.Schema
         public static BasicLiteral DateTimeOffset(DateTimeOffset value) => new DateTimeOffsetLiteral(value);
         public static BasicLiteral TimeSpan(TimeSpan value) => new TimeSpanLiteral(value);
         public static BasicLiteral Id(QualifiedIdentifier value) => new IdentifierLiteral(value);
-        public static BasicLiteral None => NoneLiteral.None;
+        public static BasicLiteral None => NoneLiteral.NoneValue;
 
         public static implicit operator BasicLiteral(byte value) => Unsigned(value);
         public static implicit operator BasicLiteral(ushort value) => Unsigned(value);

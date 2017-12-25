@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MicroPipes.Schema\MicroPipes.Schema.fsproj" />
+    <ProjectReference Include="..\..\src\MicroPipes\MicroPipes.fsproj" />
   </ItemGroup>
 
 </Project>
