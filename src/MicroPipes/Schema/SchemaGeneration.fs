@@ -5,6 +5,7 @@ open NuGet.Versioning
 open MicroPipes.Schema.Green
 open MicroPipes
 open FSharp.Reflection
+open TypePatterns
 
 module SchemaGenerator =
     let isInVersion (version : SemanticVersion) (memb: MemberInfo) =
@@ -31,22 +32,16 @@ module SchemaGenerator =
     let makeEnumSchema version typ =
         let mks a = makeEnumGenericSchema version typ a
         let uType = Enum.GetUnderlyingType(typ)
-        if Object.Equals(uType, typeof<uint8>) then mks Enum8
-        else
-        if Object.Equals(uType, typeof<int8>) then mks Enum8u
-        else
-        if Object.Equals(uType, typeof<uint16>) then mks Enum16
-        else
-        if Object.Equals(uType, typeof<int16>) then mks Enum16u
-        else
-        if Object.Equals(uType, typeof<int>) then mks Enum32
-        else
-        if Object.Equals(uType, typeof<uint32>) then mks Enum32u
-        else
-        if Object.Equals(uType, typeof<int64>) then mks Enum64
-        else
-        if Object.Equals(uType, typeof<uint64>) then mks Enum64u
-        else invalidOp "Unknown enum base data type"
+        match uType with
+        | IsI8 -> mks Enum8
+        | IsU8 ->  mks Enum8u
+        | IsI16 -> mks Enum16
+        | IsU16 -> mks Enum16u
+        | IsI32 -> mks Enum32
+        | IsU32 -> mks Enum32u
+        | IsI64 -> mks Enum64
+        | IsU64 -> mks Enum64u
+        | _ -> invalidOp "Unknown enum base data type"
 
     let getTypeSchemaName (typ : Type) =
         match typ.GetCustomAttribute<NameInSchemaAttribute>() with
@@ -71,22 +66,42 @@ module SchemaGenerator =
     //let makeUnionSchema     
 
     let rec generateType wellknown (version : SemanticVersion) (acc : TypeSchema list) (typ : Type) = 
-        let isAlreadyKnown () =
-            acc 
-                |> List.map (fun p -> p.Declaration.Type) 
-                |> List.filter Option.isSome
-                |> List.map (fun p -> p.Value)
-                |> List.contains typ
+        let knownTypes list =
+            list 
+                |> List.map (fun p -> p.Declaration.Type, p) 
+                |> List.filter (fun (p, _) -> p |> Option.isSome)
+                |> List.map (fun (p, a) -> (p.Value, Reference { Name = a.Name; Type = a.Declaration.Type }))
         
         let makeSchema t =
             { TypeSchema.Name = getTypeSchemaName typ; Declaration = { Body = t; Type = Some typ; Summary = None } }
 
-        if wellknown |> List.contains typ || isAlreadyKnown() then acc
-        else
-            if typ.IsEnum then
-                 (makeEnumSchema version typ |> TypeDefinition.EnumType |> makeSchema) :: acc
-            else
-                invalidOp "`12345"
+        let wk = knownTypes wellknown
+        let ak = knownTypes acc
+
+        match typ with
+        | IsU8 -> U8 |> Ordinal |> Basic, acc
+        | IsI8 -> I8 |> Ordinal |> Basic, acc
+        | IsU16 -> U16 |> Ordinal |> Basic, acc
+        | IsI16 -> U16 |> Ordinal |> Basic, acc
+        | IsU32 -> U32 |> Ordinal |> Basic, acc
+        | IsI32 -> I32 |> Ordinal |> Basic, acc
+        | IsU64 -> U64 |> Ordinal |> Basic, acc
+        | IsI64 -> I64 |> Ordinal |> Basic, acc
+        | IsF32 -> F32 |> Float |> Basic, acc
+        | IsF64 -> F64 |> Float |> Basic, acc
+        | IsString -> BasicType.String |> Basic, acc
+        | IsUuid -> Uuid |> Basic, acc
+        | IsDT -> DT |> Basic, acc
+        | IsDTO -> DTO |> Basic, acc
+        | IsTS -> TS |> Basic, acc
+        | IsBool -> BasicType.Bool |> Basic, acc
+        | IsUrl -> Url |> Basic, acc
+        | IsInList wk fst tr -> (snd tr, acc)
+        | IsInList ak fst tr -> (snd tr, acc)
+        | IsEnum -> 
+                let es = makeEnumSchema version typ |> TypeDefinition.EnumType |> makeSchema
+                Reference { Name = es.Name; Type = Some typ }, es :: acc
+        | _ ->  invalidOp "`12345"
                 //if FSharpType.IsUnion(typ) then
 
                     

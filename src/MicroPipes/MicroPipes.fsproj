@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Schema/Common.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Schema/Literals.fs" />
     <Compile Include="Schema/BasicTypes.fs" />
     <Compile Include="Schema/Green.fs" />
