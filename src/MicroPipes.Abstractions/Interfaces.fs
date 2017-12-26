@@ -1,4 +1,5 @@
 namespace MicroPipes
+open System
 open System.Threading
 open System.Threading.Tasks
 
@@ -54,7 +55,7 @@ type IRequestReceiver<'request, 'response> =
     inherit IRequestReceiver<'request, IResponseSender<'response>,'response>
 
 type IResponseReceiver<'response> =
-    abstract HandleAsync : response : Response<'response> * cancellation : CancellationToken -> Task<Acknowledge>
+    abstract HandleAsync : response : Func<Response<'response>> * cancellation : CancellationToken -> Task<Acknowledge>
 
 type IRequestSender<'request> =
     abstract SendAsync : request : Request<'request> -> Task

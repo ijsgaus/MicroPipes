@@ -1,15 +1,22 @@
 namespace MicroPipes.Schema.Green
 
+open System
 open MicroPipes.Schema
 open NuGet.Versioning
 open MicroPipes.Schema.Literals
+
+type NamedTypeReference =
+    {
+        Name : QualifiedIdentifier
+        Type : Type option
+    }
 
 type TypeReference =
     | Unit
     | Basic of BasicType
     | Array of TypeReference
     | MayBe of TypeReference
-    | Reference of QualifiedIdentifier
+    | Reference of NamedTypeReference
     | Tuple of TypeReference list
 
 type NamedEntry =
@@ -29,6 +36,7 @@ type TypeDefinition =
 type TypeDeclaration =
     {
         Body: TypeDefinition
+        Type : Type option
         Summary: string option
     }
 
@@ -66,7 +74,7 @@ type EndpointSchema =
 type TypeSchema =
     {
         Name : QualifiedIdentifier
-        Defintion : TypeDeclaration
+        Declaration : TypeDeclaration
     }
 
 

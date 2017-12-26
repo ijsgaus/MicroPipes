@@ -10,4 +10,7 @@
     <Compile Include="Attributes.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NuGet.Versioning" Version="4.5.0" />
+  </ItemGroup> 
 </Project>

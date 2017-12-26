@@ -54,7 +54,7 @@ module Validation =
                 let notExists =
                     nel 
                     |> List.filter (fun p -> p.Index.IsNone)
-                    |> List.map (fun p -> sprintf "Index not specified for '%O'" p)
+                    |> List.map (fun p -> sprintf "Index not specified for '%O'" p.Name)
                 // duplicates 
                 let onDuplicate (k : int option, v : NamedEntry list) =    
                     let v = v |> List.map (fun p -> p.Name.ToString())
@@ -82,7 +82,7 @@ module Validation =
         ss |> checkDuplicates (fun p -> p.Name) mkError 
 
     let validateType (t : TypeSchema)=
-        (match t.Defintion.Body with
+        (match t.Declaration.Body with
         | EnumType et -> validateEnumType et 
         | MapType mt -> validateNamedEntryList mt
         | OneOfType ot -> validateNamedEntryList ot
