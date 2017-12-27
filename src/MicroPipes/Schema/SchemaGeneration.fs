@@ -76,13 +76,13 @@ module SchemaGenerator =
 
     type Configuration =
         {
-            IsInVersion : CheckVersion
+            IsInVersion : SemanticVersion -> CheckVersion
             DocReader : DocReader
             EnumMakers : EnumMaker list
         }
-        static member Default version =
+        static member Default  =
             {
-                IsInVersion = isInVersion version
+                IsInVersion = isInVersion
                 DocReader = fun _ -> None
                 EnumMakers = 
                     [  
@@ -102,8 +102,9 @@ module SchemaGenerator =
             
 
     let makeEnumSchema config typ =
-        config.EnumMakers 
-            |> Seq.map (fun p -> p config.IsInVersion config.DocReader typ)
+        fun version ->
+            config.EnumMakers 
+            |> Seq.map (fun p -> p (config.IsInVersion version) config.DocReader typ)
             |> Seq.tryFind Option.isSome
             |> Option.bind id
             |> Option.defaultWith (fun () -> invalidOp "Unknown enum base data type")
@@ -209,7 +210,7 @@ module SchemaGenerator =
                 let (elr, ts) = pelem el acc []
                 TypeReference.Tuple (elr |> List.rev), ts
         | IsEnum -> 
-                let es = makeEnumSchema (Configuration.Default version) typ |> TypeDefinition.EnumType |> makeSchema
+                let es = version |> makeEnumSchema Configuration.Default typ |> TypeDefinition.EnumType |> makeSchema
                 Reference { Name = es.Name; Type = Some typ }, es :: acc
         | IsUnion ul ->
             let uid = getTypeSchemaName typ
