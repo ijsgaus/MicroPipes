@@ -15,28 +15,20 @@ module SchemaGenerator =
     type EnumMaker = CheckVersion -> DocReader -> Type -> Option<EnumType>
     
     let (>=>) a b =
-        fun x -> 
-            match a x with
-            | Some y -> b y
-            | None -> None
+        fun x -> a x |> Option.bind b
+            
 
     let (>->) a b =
-        fun x -> 
-            match a x with
-            | Some y -> b y |> Some
-            | None -> None
+        fun x -> a x |> Option.map b
+            
     
     let (=|>) a b =
-        fun x ->
-            match a x with
-            | Some y -> Some y
-            | _ -> b x
+        fun x -> a x |> Option.orElseWith (fun () -> b x)
+            
     
-    let (?=) a b =
-        fun x ->
-            match a x with
-            | Some y -> y
-            | _ -> b x
+    let (?=) a b = 
+        fun x -> a x |> Option.defaultWith (fun () -> b x)
+            
 
     let getAttribute<'t when 't :> Attribute and 't: null> (mi : MemberInfo) =
         match mi.GetCustomAttribute<'t>() with
@@ -71,22 +63,16 @@ module SchemaGenerator =
                 |> (fun p -> { EnumType.IsFlag = isFlag; Values = p }) 
                 |> Some
             else None    
-    let makeEnumGenericSchema version (typ : Type) (fn : EnumType<'t> -> EnumType) =
-        let isFlag = typ.GetCustomAttribute<FlagsAttribute>() |> isNull |> not
-        let fieldSchema (fld: FieldInfo) =
-            { EnumField.Name = Identifier.parse(fld.Name); Value = fld.GetValue(null) |> unbox<'t>; Summary = None } 
-        Enum.GetNames(typ) 
-            |> Seq.map (fun p -> typ.GetField(p)) 
-            |> Seq.filter (isInVersion version)
-            |> Seq.map fieldSchema
-            |> Seq.toList
-            |> (fun p -> { EnumType.IsFlag = isFlag; Values = p }) |> fn
     
     let isType<'t> (t:Type) = if Object.Equals(typeof<'t>, t) then Some(t) else None
     let isEnumBaseType<'t> (t : Type) =
         match Enum.GetUnderlyingType(t) with
         | null -> None
         | p -> isType<'t> p |> Option.map (fun _ -> t)
+
+    let makeEnumType<'t> (cvt : EnumType<'t> -> EnumType) =
+        fun cv dr -> isEnumBaseType<'t> >=> makeEnumFromType cv dr >-> cvt
+
 
     type Configuration =
         {
@@ -100,14 +86,14 @@ module SchemaGenerator =
                 DocReader = fun _ -> None
                 EnumMakers = 
                     [  
-                        fun cv dr  -> isEnumBaseType<byte>   >=> makeEnumFromType cv dr >-> Enum8u
-                        fun cv dr  -> isEnumBaseType<sbyte>  >=> makeEnumFromType cv dr >-> Enum8
-                        fun cv dr  -> isEnumBaseType<uint16> >=> makeEnumFromType cv dr >-> Enum16u
-                        fun cv dr  -> isEnumBaseType<int16>  >=> makeEnumFromType cv dr >-> Enum16
-                        fun cv dr  -> isEnumBaseType<uint32> >=> makeEnumFromType cv dr >-> Enum32u
-                        fun cv dr  -> isEnumBaseType<int>    >=> makeEnumFromType cv dr >-> Enum32
-                        fun cv dr  -> isEnumBaseType<uint64> >=> makeEnumFromType cv dr >-> Enum64u
-                        fun cv dr  -> isEnumBaseType<int64>  >=> makeEnumFromType cv dr >-> Enum64
+                        makeEnumType<byte>   Enum8u
+                        makeEnumType<sbyte>  Enum8
+                        makeEnumType<uint16> Enum16u
+                        makeEnumType<int16>  Enum16
+                        makeEnumType<uint32> Enum32u
+                        makeEnumType<int>    Enum32
+                        makeEnumType<uint64> Enum64u
+                        makeEnumType<int64>  Enum64
                     ]
 
             }

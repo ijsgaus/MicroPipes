@@ -86,7 +86,8 @@ module Validation =
         | EnumType et -> validateEnumType et 
         | MapType mt -> validateNamedEntryList mt
         | OneOfType ot -> validateNamedEntryList ot
-        | Wellknown _ -> [])
+        | Wellknown _ -> []
+        | Dummy -> [ "Is dummy type"])
         |> List.map (fun s -> sprintf "Type '%O': %s" t.Name s)
 
     let validateEndpoint (t : EndpointSchema) =
