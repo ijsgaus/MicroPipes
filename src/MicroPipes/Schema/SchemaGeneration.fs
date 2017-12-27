@@ -9,12 +9,68 @@ open TypePatterns
 open System
 
 module SchemaGenerator =
-    let isInVersion (version : SemanticVersion) (memb: MemberInfo) =
-        match memb.GetCustomAttribute<VersionRangeAttribute>() with
-        | null -> true
-        | ver -> ver.IsInRange(version)
-            
+    type TypeRecognizer<'t> = Type -> Option<'t>
+    type DocReader = MemberInfo -> string option
+    type CheckVersion = MemberInfo -> bool
+    type EnumMaker = CheckVersion -> DocReader -> Type -> Option<EnumType>
+    
+    let (>=>) a b =
+        fun x -> 
+            match a x with
+            | Some y -> b y
+            | None -> None
 
+    let (>->) a b =
+        fun x -> 
+            match a x with
+            | Some y -> b y |> Some
+            | None -> None
+    
+    let (=|>) a b =
+        fun x ->
+            match a x with
+            | Some y -> Some y
+            | _ -> b x
+    
+    let (?=) a b =
+        fun x ->
+            match a x with
+            | Some y -> y
+            | _ -> b x
+
+    let getAttribute<'t when 't :> Attribute and 't: null> (mi : MemberInfo) =
+        match mi.GetCustomAttribute<'t>() with
+        | null -> None
+        | a -> Some a
+
+    let isInVersion (version : SemanticVersion) =
+        getAttribute<VersionRangeAttribute> 
+            >=> (fun x -> x.IsInRange(version) |> Some) 
+            ?= (fun _ -> true)
+
+    let memberName =
+        getAttribute<MemberIdentifierAttribute> >=> (fun o -> o.Name |> Some) ?= (fun (mi : MemberInfo) -> Identifier.parse mi.Name)
+
+    let typeName =
+        getAttribute<SchemaIdentifierAttribute> >=> (fun o -> o.Name |> Some) ?= (fun (t : Type) -> Identifier.parseQualified (t.Name.Replace("+", ".")))
+
+    let makeEnumFromType<'t> (checkVersion : CheckVersion) (docReader : DocReader) =
+        fun (t : Type) ->
+            if t.IsEnum then 
+                let isFlag = 
+                    getAttribute<FlagsAttribute> t 
+                    |> Option.map (fun _ -> true) 
+                    |> Option.defaultValue false
+                let field (fi : FieldInfo) =
+                   { EnumField.Name = memberName fi; Value = fi.GetValue(null) |> unbox<'t>; Summary = docReader fi }
+                Enum.GetNames(t) 
+                |> Seq.map (fun p -> t.GetField(p)) 
+                |> Seq.filter checkVersion
+                |> Seq.map field
+                |> Seq.toList 
+                |> (fun p -> { EnumType.IsFlag = isFlag; Values = p }) 
+                |> Some
+            else None    
     let makeEnumGenericSchema version (typ : Type) (fn : EnumType<'t> -> EnumType) =
         let isFlag = typ.GetCustomAttribute<FlagsAttribute>() |> isNull |> not
         let fieldSchema (fld: FieldInfo) =
@@ -25,8 +81,47 @@ module SchemaGenerator =
             |> Seq.map fieldSchema
             |> Seq.toList
             |> (fun p -> { EnumType.IsFlag = isFlag; Values = p }) |> fn
+    
+    let isType<'t> (t:Type) = if Object.Equals(typeof<'t>, t) then Some(t) else None
+    let isEnumBaseType<'t> (t : Type) =
+        match Enum.GetUnderlyingType(t) with
+        | null -> None
+        | p -> isType<'t> p |> Option.map (fun _ -> t)
 
-    let makeEnumSchema version typ =
+    type Configuration =
+        {
+            IsInVersion : CheckVersion
+            DocReader : DocReader
+            EnumMakers : EnumMaker list
+        }
+        static member Default version =
+            {
+                IsInVersion = isInVersion version
+                DocReader = fun _ -> None
+                EnumMakers = 
+                    [  
+                        fun cv dr  -> isEnumBaseType<byte>   >=> makeEnumFromType cv dr >-> Enum8u
+                        fun cv dr  -> isEnumBaseType<sbyte>  >=> makeEnumFromType cv dr >-> Enum8
+                        fun cv dr  -> isEnumBaseType<uint16> >=> makeEnumFromType cv dr >-> Enum16u
+                        fun cv dr  -> isEnumBaseType<int16>  >=> makeEnumFromType cv dr >-> Enum16
+                        fun cv dr  -> isEnumBaseType<uint32> >=> makeEnumFromType cv dr >-> Enum32u
+                        fun cv dr  -> isEnumBaseType<int>    >=> makeEnumFromType cv dr >-> Enum32
+                        fun cv dr  -> isEnumBaseType<uint64> >=> makeEnumFromType cv dr >-> Enum64u
+                        fun cv dr  -> isEnumBaseType<int64>  >=> makeEnumFromType cv dr >-> Enum64
+                    ]
+
+            }
+
+    
+            
+
+    let makeEnumSchema config typ =
+        config.EnumMakers 
+            |> Seq.map (fun p -> p config.IsInVersion config.DocReader typ)
+            |> Seq.tryFind Option.isSome
+            |> Option.bind id
+            |> Option.defaultWith (fun () -> invalidOp "Unknown enum base data type")
+        (*
         let mks a = makeEnumGenericSchema version typ a
         let uType = Enum.GetUnderlyingType(typ)
         match uType with
@@ -38,7 +133,7 @@ module SchemaGenerator =
         | IsU32 -> mks Enum32u
         | IsI64 -> mks Enum64
         | IsU64 -> mks Enum64u
-        | _ -> invalidOp "Unknown enum base data type"
+        | _ -> invalidOp "Unknown enum base data type"*)
 
     let getTypeSchemaName (typ : Type) =
         match typ.GetCustomAttribute<SchemaIdentifierAttribute>() with
@@ -128,7 +223,7 @@ module SchemaGenerator =
                 let (elr, ts) = pelem el acc []
                 TypeReference.Tuple (elr |> List.rev), ts
         | IsEnum -> 
-                let es = makeEnumSchema version typ |> TypeDefinition.EnumType |> makeSchema
+                let es = makeEnumSchema (Configuration.Default version) typ |> TypeDefinition.EnumType |> makeSchema
                 Reference { Name = es.Name; Type = Some typ }, es :: acc
         | IsUnion ul ->
             let uid = getTypeSchemaName typ
