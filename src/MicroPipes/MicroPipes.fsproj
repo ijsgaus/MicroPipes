@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MicroPipes.Abstractions\MicroPipes.Abstractions.fsproj" />
+    <ProjectReference Include="..\MicroPipes.Abstractions\MicroPipes.Abstractions.csproj" />
   </ItemGroup> 
 
 </Project>

@@ -2,6 +2,7 @@ namespace MicroPipes.Schema.Literals
 open System
 open System.Collections.Generic
 open System.Runtime.CompilerServices
+open MicroPipes
 open MicroPipes.Schema
 
 

@@ -3,6 +3,7 @@ namespace MicroPipes.Schema.Green
 open System
 open MicroPipes.Schema
 open NuGet.Versioning
+open MicroPipes
 open MicroPipes.Schema.Literals
 
 type NamedTypeReference =
@@ -32,6 +33,7 @@ type TypeDefinition =
     | MapType of NamedEntry list 
     | OneOfType of NamedEntry list
     | Wellknown of string option
+    | Dummy
 
 type TypeDeclaration =
     {

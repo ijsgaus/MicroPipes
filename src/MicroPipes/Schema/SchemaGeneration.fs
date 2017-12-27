@@ -4,19 +4,16 @@ open System.Reflection
 open NuGet.Versioning
 open MicroPipes.Schema.Green
 open MicroPipes
-open FSharp.Reflection
+open System.Linq
 open TypePatterns
+open System
 
 module SchemaGenerator =
     let isInVersion (version : SemanticVersion) (memb: MemberInfo) =
-        match memb.GetCustomAttribute<VersionAttribute>() with
+        match memb.GetCustomAttribute<VersionRangeAttribute>() with
         | null -> true
-        | ver ->
-            let version = SemanticVersion(version.Major, version.Minor, version.Patch)
-            if version < ver.FromVersion then false
-            else
-                if isNull ver.ToVersion then true
-                else ver.ToVersion > version 
+        | ver -> ver.IsInRange(version)
+            
 
     let makeEnumGenericSchema version (typ : Type) (fn : EnumType<'t> -> EnumType) =
         let isFlag = typ.GetCustomAttribute<FlagsAttribute>() |> isNull |> not
@@ -44,28 +41,38 @@ module SchemaGenerator =
         | _ -> invalidOp "Unknown enum base data type"
 
     let getTypeSchemaName (typ : Type) =
-        match typ.GetCustomAttribute<NameInSchemaAttribute>() with
-        | null -> typ.FullName |> Identifier.parseQualified
-        | v -> v.Name |> Identifier.parseQualified
+        match typ.GetCustomAttribute<SchemaIdentifierAttribute>() with
+        | null -> typ.FullName.Replace("+", ".") |> Identifier.parseQualified
+        | v -> v.Name 
 
-    
+    let getFieldName (mi: MemberInfo) =
+        match mi.GetCustomAttribute<MemberIdentifierAttribute>() with
+        | null -> mi.Name |> Identifier.parse
+        | v -> v.Name
 
     let getOneOfTypeVariants (typ : Type) =
         if typ.IsAbstract |> not || typ.GetCustomAttribute<OneOfRootAttribute>() |> isNull then []
         else
             let getUnionName (t : Type) =
-                match t.GetCustomAttribute<OneOfNameAttribute>() with
-                | null -> t.Name.Replace("Type", "")
+                match t.GetCustomAttribute<OneOfMemberAttribute>() with
+                | null -> t.Name.Replace("Type", "") |> Identifier.parse
                 | v -> v.Name
             typ.GetNestedTypes()
             |> Seq.filter (fun p -> typ.IsAssignableFrom(p))
-            |> Seq.map (fun p -> (getUnionName p |> Identifier.parse , p))
+            |> Seq.map (fun p -> (getUnionName p, p))
             |> Seq.toList
 
-
-    //let makeUnionSchema     
-
-    let rec generateType wellknown (version : SemanticVersion) (acc : TypeSchema list) (typ : Type) = 
+    let rec generateTypeByPropList (version : SemanticVersion) (acc : TypeSchema list) id (props : PropertyInfo list) typ  =
+        let folder (ts, fl) (prop : PropertyInfo)  =
+            let (r, ts1) = generateType version ts (prop.PropertyType)
+            ts1, { NamedEntry.Name = getFieldName prop; Index = None; Type = r; Summary = None } :: fl
+        let (ts, fl) = props |> List.fold folder (acc, [])
+        let nt = { TypeSchema.Name = id; Declaration = { Body = MapType (fl |> List.rev); Type = typ; Summary = None } }
+        let tr = Reference { Name = id; Type = typ }
+        match ts |> List.tryFind (fun p -> p.Name = id && (match p.Declaration.Body with | Dummy -> true | _ -> false )) with
+        | Some t ->  tr,  ts |> List.map (fun p -> if p = t then nt else p)
+        | _ -> tr, nt:: ts
+    and generateType (version : SemanticVersion) (acc : TypeSchema list) (typ : Type) = 
         let knownTypes list =
             list 
                 |> List.map (fun p -> p.Declaration.Type, p) 
@@ -75,14 +82,13 @@ module SchemaGenerator =
         let makeSchema t =
             { TypeSchema.Name = getTypeSchemaName typ; Declaration = { Body = t; Type = Some typ; Summary = None } }
 
-        let wk = knownTypes wellknown
         let ak = knownTypes acc
 
         match typ with
         | IsU8 -> U8 |> Ordinal |> Basic, acc
         | IsI8 -> I8 |> Ordinal |> Basic, acc
         | IsU16 -> U16 |> Ordinal |> Basic, acc
-        | IsI16 -> U16 |> Ordinal |> Basic, acc
+        | IsI16 -> I16 |> Ordinal |> Basic, acc
         | IsU32 -> U32 |> Ordinal |> Basic, acc
         | IsI32 -> I32 |> Ordinal |> Basic, acc
         | IsU64 -> U64 |> Ordinal |> Basic, acc
@@ -96,11 +102,57 @@ module SchemaGenerator =
         | IsTS -> TS |> Basic, acc
         | IsBool -> BasicType.Bool |> Basic, acc
         | IsUrl -> Url |> Basic, acc
-        | IsInList wk fst tr -> (snd tr, acc)
+        | IsUnit -> Unit, acc
         | IsInList ak fst tr -> (snd tr, acc)
+        | IsOptionLike el ->
+            let er, acc1 = generateType version acc el
+            TypeReference.MayBe er, acc1
+        | IsArray el
+        | IsArrayLike el -> 
+            let er, acc1 = generateType version acc el
+            TypeReference.Array er, acc1
+        | IsTuple el 
+        | IsValueTuple el ->
+            match el with
+            | [] -> TypeReference.Unit, acc
+            | _ ->
+                let rec pelem v ts elr =
+                    match v with
+                    | [] -> elr, ts
+                    | [h] -> 
+                        let r, ts1 = generateType version ts h
+                        r :: elr, ts1
+                    | h :: rest -> 
+                        let r, ts1 = generateType version ts h
+                        pelem rest ts1 (r :: elr)
+                let (elr, ts) = pelem el acc []
+                TypeReference.Tuple (elr |> List.rev), ts
         | IsEnum -> 
                 let es = makeEnumSchema version typ |> TypeDefinition.EnumType |> makeSchema
                 Reference { Name = es.Name; Type = Some typ }, es :: acc
+        | IsUnion ul ->
+            let uid = getTypeSchemaName typ
+            let ru = Reference { Name = uid; Type = Some typ }
+            let dummy = { TypeSchema.Name = uid; Declaration = { Body = Dummy; Type = Some typ ; Summary = None } }
+            let es =  dummy :: acc
+            let folder (ts, tr) (id, attrs, ind, props : PropertyInfo list)  =
+                match attrs |> Enumerable.OfType<VersionRangeAttribute> |> Seq.tryHead with
+                | Some t when t.IsInRange(version) |> not -> ts, tr
+                | _ -> 
+                    let flds = 
+                        props
+                        |> List.filter (isInVersion version)
+                    match flds with
+                    | [] -> ts, { NamedEntry.Name = id; Index = ind |> Some; Type = TypeReference.Unit; Summary = None } :: tr
+                    | [h] -> 
+                             let (r, ts1) = generateType version ts (h.PropertyType)
+                             ts1, { NamedEntry.Name = id; Index = ind |> Some; Type = r; Summary = None } :: tr
+                    | _ -> 
+                        let (r, ts1) = generateTypeByPropList version ts (Identifier.create uid id) flds None
+                        ts1, { NamedEntry.Name = id; Index = ind |> Some; Type = r; Summary = None } :: tr
+            let (ts1, fls) = ul |> List.fold folder (es, [])
+            ru, ts1 |> List.map (fun p -> if p = dummy then { Name = uid; Declaration = { Body = fls |> List.rev |> OneOfType; Type = Some typ; Summary = None }} else p)
+
         | _ ->  invalidOp "`12345"
                 //if FSharpType.IsUnion(typ) then
 

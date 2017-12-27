@@ -1,5 +1,10 @@
 namespace MicroPipes
 open System
+open System.Collections.Generic
+open System.Linq
+open MicroPipes.Schema
+
+
 module TypePatterns =
     let (|IsU8|_|) (t: Type)  =
         if Object.Equals(typeof<byte>, t) then Some() else None
@@ -35,8 +40,87 @@ module TypePatterns =
         if Object.Equals(typeof<bool>, t) then Some() else None
     let (|IsUrl|_|)  (t:Type) =
         if Object.Equals(typeof<Uri>, t) then Some() else None
-    let (|IsEnum|_|) (t:Type) =
-        if t.IsEnum then Some() else None
+
+    let (|IsUnit|_|)  (t:Type) =
+        if Object.Equals(typeof<unit>, t) then Some() else None
+    
+    let (|IsArray|_|) (t:Type) =
+        if t.IsArray then Some(t.GetElementType()) else None
+    
+    let (|IsArrayLike|_|) (t: Type) =
+        if t.IsArray |> not && Object.Equals(typeof<string>, t) |> not && t.IsConstructedGenericType then
+            let findEnumerable (p: Type) =
+                p.IsConstructedGenericType && Object.Equals(p.GetGenericTypeDefinition(), typedefof<IEnumerable<_>>)  
+            match t.GetInterfaces() |> Seq.tryFind findEnumerable with
+            | Some i -> i.GenericTypeArguments.[0] |> Some
+            | None -> None  
+        else
+            None 
+
+    let (|IsOption|_|) (t: Type) =
+        if t.IsConstructedGenericType && Object.Equals(t.GetGenericTypeDefinition(), typedefof<Option<_>>) then 
+            t.GenericTypeArguments.[0] |> Some
+        else None
+
+    let (|IsLEOption|_|) (t: Type) =
+        if t.IsConstructedGenericType && Object.Equals(t.GetGenericTypeDefinition(), typedefof<LanguageExt.Option<_>>) then 
+            t.GenericTypeArguments.[0] |> Some
+        else None        
+
+    let (|IsNullable|_|) (t: Type) =
+        if t.IsConstructedGenericType && Object.Equals(t.GetGenericTypeDefinition(), typedefof<Nullable<_>>) then 
+            t.GenericTypeArguments.[0] |> Some
+        else None        
+    
+    let (|IsOptionLike|_|) (t: Type) =
+        match t with
+        | IsOption a | IsLEOption a | IsNullable a -> a |> Some
+        | _ -> None
+
+    let private tupleTypes = 
+        [
+            typedefof<Tuple<_>>; typedefof<Tuple<_,_>>; typedefof<Tuple<_,_,_>>; typedefof<Tuple<_,_,_,_>>
+            typedefof<Tuple<_,_,_,_,_>>; typedefof<Tuple<_,_,_,_,_,_>>; typedefof<Tuple<_,_,_,_,_,_,_>>; typedefof<Tuple<_,_,_,_,_,_,_,_>>
+        ]
+    
+    let private vTupleTypes = 
+        [
+            typedefof<ValueTuple<_>>; typedefof<ValueTuple<_,_>>; typedefof<ValueTuple<_,_,_>>; typedefof<ValueTuple<_,_,_,_>>
+            typedefof<ValueTuple<_,_,_,_,_>>; typedefof<ValueTuple<_,_,_,_,_,_>>; typedefof<ValueTuple<_,_,_,_,_,_,_>> 
+            typedefof<ValueTuple<_,_,_,_,_,_,_,_>>
+        ]
+    let (|IsTuple|_|) (t: Type) =
+        if Object.Equals(t, typeof<Tuple>) then [] |> Some
+        else 
+        if t.IsConstructedGenericType |> not then None
+        else
+            let gt = t.GetGenericTypeDefinition()
+            if tupleTypes |> List.tryFind (fun p -> Object.Equals(p, gt)) |> Option.isNone then
+                t.GenericTypeArguments |> Array.toList |> Some
+            else
+                None
+    
+    let (|IsValueTuple|_|) (t: Type) =
+        if Object.Equals(t, typeof<ValueTuple>) then [] |> Some
+        else 
+        if t.IsConstructedGenericType |> not then None
+        else
+            let gt = t.GetGenericTypeDefinition()
+            if vTupleTypes |> List.tryFind (fun p -> Object.Equals(p, gt)) |> Option.isNone then
+                t.GenericTypeArguments |> Array.toList |> Some
+            else
+                None
 
     let (|IsInList|_|) lst extr (t:Type) =
         lst |> List.map (fun p -> extr p, p) |> List.tryFind (fun (t1 : Type, _) -> Object.Equals(t1, t)) |> Option.map snd
+
+    let (|IsEnum|_|) (t:Type) = match t.IsEnum with | true -> Some() | _ -> None
+
+    let (|IsUnion|_|) (t:Type) =
+        match Reflection.FSharpType.IsUnion t with
+        | false -> None
+        | true -> 
+            Reflection.FSharpType.GetUnionCases(t) 
+                |> Seq.map (fun p -> p.Name |> Identifier.parse, p.GetCustomAttributes() |> Enumerable.Cast<Attribute> |> Seq.toList, p.Tag, p.GetFields() |> Array.toList) |> Seq.toList |> Some
+        
+    

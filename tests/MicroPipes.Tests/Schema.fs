@@ -1,11 +1,15 @@
 module Tests
 
+open System
 open Expecto
 open Expecto.Flip
 open MicroPipes
 open MicroPipes.Schema
 open MicroPipes.Schema.Green
+open System.Collections.Generic
 open NuGet.Versioning
+open MicroPipes.Schema
+open Mono.Cecil
 
 [<Tests>]
 let validations =
@@ -101,12 +105,16 @@ let validations =
 
 
 type Test1 = class end
-[<Version("2.0.0")>]
+[<VersionRange("2.0.0")>]
 type Test2 = 
   | One = 1us
-  | [<Version("2.2.0")>] Two = 2us
-[<Version("2.0.0", "2.1.0")>]
+  | [<VersionRange("2.2.0")>] Two = 2us
+[<VersionRange("2.0.0", "2.1.0")>]
 type Test3 = class end
+
+type Test4 =
+  | First  of Version
+  | Second of int
 
 
 [<Tests>]
@@ -130,6 +138,227 @@ let schemaGen =
     testCase "Is in version false 3" <| fun _ ->
       let ver = SemanticVersion.Parse("2.1.1")
       Expect.isFalse "Is in version false 3" (SchemaGenerator.isInVersion ver typeof<Test3>)
+    
+    testCase "Is List<T> array like" <| fun _ ->
+      let a = typeof<List<int>>
+      match a with
+      | TypePatterns.IsArrayLike i -> Expect.equal "Must be int" i (typeof<int>)
+      | _ -> Tests.failtest "No array detected"
+
+    testCase "Schema u8" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<byte>
+      Expect.equal "Empty list" [] s
+      Expect.equal "U8 ref" (TypeReference.Basic(Ordinal(U8))) r
+    testCase "Schema i8" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<sbyte>
+      Expect.equal "Empty list" [] s
+      Expect.equal "I8 ref" (TypeReference.Basic(Ordinal(I8))) r
+    testCase "Schema u16" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<uint16>
+      Expect.equal "Empty list" [] s
+      Expect.equal "U16 ref" (TypeReference.Basic(Ordinal(U16))) r
+    testCase "Schema i16" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<int16>
+      Expect.equal "Empty list" [] s
+      Expect.equal "I16 ref" (TypeReference.Basic(Ordinal(I16))) r
+    testCase "Schema u32" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<uint32>
+      Expect.equal "Empty list" [] s
+      Expect.equal "U32 ref" (TypeReference.Basic(Ordinal(U32))) r
+    testCase "Schema i32" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<int>
+      Expect.equal "Empty list" [] s
+      Expect.equal "I32 ref" (TypeReference.Basic(Ordinal(I32))) r
+    testCase "Schema u64" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<uint64>
+      Expect.equal "Empty list" [] s
+      Expect.equal "U64 ref" (TypeReference.Basic(Ordinal(U64))) r
+    testCase "Schema i64" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<int64>
+      Expect.equal "Empty list" [] s
+      Expect.equal "I64 ref" (TypeReference.Basic(Ordinal(I64))) r
+
+    testCase "Schema F32" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<float32>
+      Expect.equal "Empty list" [] s
+      Expect.equal "F32 ref" (TypeReference.Basic(Float(F32))) r
+    testCase "Schema F64" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<float>
+      Expect.equal "Empty list" [] s
+      Expect.equal "F64 ref" (TypeReference.Basic(Float(F64))) r
+
+    testCase "Schema string" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<string>
+      Expect.equal "Empty list" [] s
+      Expect.equal "String ref" (TypeReference.Basic(String)) r
+    testCase "Schema Uuid" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<Guid>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Uuid ref" (TypeReference.Basic(Uuid)) r
+    testCase "Schema DT" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<DateTime>
+      Expect.equal "Empty list" [] s
+      Expect.equal "DT ref" (TypeReference.Basic(DT)) r
+    testCase "Schema DTO" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<DateTimeOffset>
+      Expect.equal "Empty list" [] s
+      Expect.equal "DTO ref" (TypeReference.Basic(DTO)) r
+    testCase "Schema TS" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<TimeSpan>
+      Expect.equal "Empty list" [] s
+      Expect.equal "TS ref" (TypeReference.Basic(TS)) r
+    testCase "Schema Bool" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<bool>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Bool ref" (TypeReference.Basic(Bool)) r    
+    testCase "Schema Url" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<Uri>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Url ref" (TypeReference.Basic(Url)) r
+
+    testCase "Schema known" <| fun _ ->
+      let wki = Identifier.parseQualified "Version" 
+      let wk =
+        [
+          { 
+            Name = wki 
+            Declaration = 
+              {
+                Body = Wellknown None
+                Type = typeof<Version> |> Some
+                Summary = None  
+              }
+          }
+        ]
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") wk typeof<Version>
+      Expect.equal "Empty list" wk s
+      Expect.equal "Known ref" (TypeReference.Reference { Name = wki; Type = Some typeof<Version> }) r
+
+    testCase "Array known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<byte array>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Array ref" (TypeReference.Array (U8 |> Ordinal |> Basic)) r
+    testCase "List known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<byte list>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Array ref" (TypeReference.Array (U8 |> Ordinal |> Basic)) r
+
+    testCase "Option known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<byte option>
+      Expect.equal "Empty list" [] s
+      Expect.equal "MayBe ref" (TypeReference.MayBe (U8 |> Ordinal |> Basic)) r
+    testCase "Nullable known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<Nullable<byte>>
+      Expect.equal "Empty list" [] s
+      Expect.equal "MayBe ref" (TypeReference.MayBe (U8 |> Ordinal |> Basic)) r
+    testCase "LanguageExt Option known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<LanguageExt.Option<byte>>
+      Expect.equal "Empty list" [] s
+      Expect.equal "MayBe ref" (TypeReference.MayBe (U8 |> Ordinal |> Basic)) r
+
+    testCase "List<Option<byte>> known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<List<byte option>>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Array of MayBe ref" (TypeReference.Array(TypeReference.MayBe (U8 |> Ordinal |> Basic))) r
+
+    testCase "Tuple known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<byte * int>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Tuple ref" (TypeReference.Tuple [U8 |> Ordinal |> Basic; I32 |> Ordinal |> Basic]) r
+
+    testCase "ValueTuple<,> known" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<struct (byte * int)>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Tuple ref" (TypeReference.Tuple [U8 |> Ordinal |> Basic; I32 |> Ordinal |> Basic]) r
+
+    testCase "ValueTuple known as Unit" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<ValueTuple>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Tuple ref" (TypeReference.Unit) r
+    testCase "Unit known as Unit" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "1.0.0") [] typeof<unit>
+      Expect.equal "Empty list" [] s
+      Expect.equal "Tuple ref" (TypeReference.Unit) r
+
+    testCase "Enum with version small then field" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "2.0.0") [] typeof<Test2>
+      let id = "Tests.Test2" |> Identifier.parseQualified
+      let ts = 
+        {
+          TypeSchema.Name = id
+          Declaration = 
+            {
+              Body =  
+                {
+                    IsFlag = false
+                    Values = 
+                      [ 
+                        { Name = "One" |> Identifier.parse; Value = 1us; Summary = None}
+                      ]
+                } |> Enum16u |> EnumType
+              Type = typeof<Test2> |> Some
+              Summary = None
+            }
+        }
+      Expect.equal "Empty list" [ ts ] s
+      Expect.equal "Tuple ref" (TypeReference.Reference { Name = id; Type = Some typeof<Test2> }) r
+
+
+    testCase "Enum with version greater then field" <| fun _ ->
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "3.0.0") [] typeof<Test2>
+      let id = "Tests.Test2" |> Identifier.parseQualified
+      let ts = 
+        {
+          TypeSchema.Name = id
+          Declaration = 
+            {
+              Body =  
+                {
+                    IsFlag = false
+                    Values = 
+                      [ 
+                        { Name = "One" |> Identifier.parse; Value = 1us; Summary = None}
+                        { Name = "Two" |> Identifier.parse; Value = 2us; Summary = None}
+                      ]
+                } |> Enum16u |> EnumType
+              Type = typeof<Test2> |> Some
+              Summary = None
+            }
+        }
+      Expect.equal "Empty list" [ ts ] s
+      Expect.equal "Tuple ref" (TypeReference.Reference { Name = id; Type = Some typeof<Test2> }) r
+
+    testCase "FSharp union" <| fun _ ->
+      let wki = Identifier.parseQualified "Version" 
+      let wk =
+          { 
+            Name = wki 
+            Declaration = 
+              {
+                Body = Wellknown None
+                Type = typeof<Version> |> Some
+                Summary = None  
+              }
+          }
+      let r, s = SchemaGenerator.generateType (SemanticVersion.Parse "3.0.0") [wk] typeof<Test4>
+      let id = "Tests.Test4" |> Identifier.parseQualified
+      
+      let ts = 
+        {
+          TypeSchema.Name = id
+          Declaration = 
+            {
+              Body =  
+                [ 
+                  { Name = "First" |> Identifier.parse; Index = Some 0; Summary = None; Type = Reference { Name = wki; Type = typeof<Version> |> Some }}
+                  { Name = "Second" |> Identifier.parse; Index = Some 1; Summary = None; Type = I32 |> Ordinal |> Basic }
+                ] |> OneOfType
+              Type = typeof<Test4> |> Some
+              Summary = None
+            }
+        }
+      Expect.equal "Empty list" [ ts; wk ] s
+      Expect.equal "OneOf ref" (TypeReference.Reference { Name = id; Type = Some typeof<Test4> }) r  
   ]
 
 [<Tests>]

@@ -6,11 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Interfaces.fs" />
-    <Compile Include="Attributes.fs" />
+    <PackageReference Include="NuGet.Versioning" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Versioning" Version="4.5.0" />
+    <ProjectReference Include="..\MicroPipes.Abstractions\MicroPipes.Abstractions.csproj" />
   </ItemGroup> 
 </Project>
