@@ -9,6 +9,13 @@ open TypePatterns
 open System
 open MicroPipes.Reflection
 
+type ISchemaGeneratorExtension =
+    abstract ExtendEnum : enumType: Type * enumNode: EnumType -> EnumType
+    abstract ExtendProperty : memb: MemberInfo * entry : NamedEntry -> NamedEntry 
+    abstract ExtendUnionCase : case : MakedFrom * entry : NamedEntry -> NamedEntry
+    abstract ExtendType : typ : MakedFrom * node: TypeDeclaration -> TypeDeclaration
+    abstract ExtendEndpoint : typ : Type * schemaName : QualifiedIdentifier * endpoint : EndpointSchema -> EndpointSchema
+
 module SchemaGenerator =
     
     let isInVersion (version : SemanticVersion) =
@@ -75,10 +82,13 @@ module SchemaGenerator =
 
 
 
+    
+
     type Configuration =
         {
             Services : IServices
             EnumMakers : EnumMaker list
+            Extensions : ISchemaGeneratorExtension list
         }
         static member Default  =
             {
@@ -101,7 +111,7 @@ module SchemaGenerator =
                         makeEnumType<uint64> Enum64u
                         makeEnumType<int64>  Enum64
                     ]
-
+                Extensions = []
             }
 
     
@@ -109,46 +119,58 @@ module SchemaGenerator =
 
     let makeEnumSchema config version  =
         fun typ ->
+          let etype =
             config.EnumMakers 
             |> Seq.map (fun p -> p config.Services version typ)
             |> Seq.tryFind Option.isSome
             |> Option.bind id
             |> Option.defaultWith (fun () -> invalidOp "Unknown enum base data type")
+          config.Extensions |> List.fold (fun etype ex -> ex.ExtendEnum(typ, etype)) etype
+            
         
 
 
     let rec generateTypeByPropList config (version : SemanticVersion) (typeList : TypeDeclaration list) decl (props : PropertyInfo list)   =
         let makeField (typeList, fields) (prop : PropertyInfo)  =
             let (field, typeList) = generateType config version typeList (prop.PropertyType)
-            typeList, 
+            let field = 
                 { 
                     MemberName = config.Services.MemberToName prop 
                     Index = None 
                     TypeRef = field 
                     Summary = None
                     Extensions = Map.empty 
-                } :: fields
+                }
+            let field = config.Extensions |> List.fold (fun fld ex -> ex.ExtendProperty(prop, fld)) field
+            typeList, field :: fields
 
         let (typeList, fields) = props |> List.fold makeField (typeList, [])
-        
-        { 
-            TypeName = decl.TypeName 
-            Body = MapType (fields |> List.rev)
-            Type = decl.Type
-            Summary = decl.Summary
-            Extensions = decl.Extensions 
-        }, typeList
+        let typeNode =
+            { 
+                TypeName = decl.TypeName 
+                Body = MapType (fields |> List.rev)
+                Type = decl.Type
+                Summary = decl.Summary
+                Extensions = decl.Extensions 
+            }
+        typeNode, typeList
 
     and generateType config (version : SemanticVersion) (typeList : TypeDeclaration list) (typ : Type) = 
         let toTypeMap (typeList : TypeDeclaration list) =
             typeList 
                 |> Seq.map (fun p -> p.Type, p) 
-                |> Seq.filter (fun (p, _) -> p |> Option.isSome)
-                |> Seq.map (fun (p, a) -> (p.Value, Reference { RefName = a.TypeName; Type = a.Type }))
+                |> Seq.collect 
+                        (fun (p, v) -> 
+                            match p with
+                            | None -> []
+                            | Some a -> 
+                                match a with
+                                | RealType t -> [t, Reference { RefName = v.TypeName; Type = t |> Some }]
+                                | _ -> [])
                 |> HashMap.fromSeq
         
         let makeSchema t =
-            { TypeName = config.Services.TypeToName typ; Body = t; Type = Some typ; Summary = None; Extensions = Map.empty }
+            { TypeName = config.Services.TypeToName typ; Body = t; Type = RealType typ |> Some; Summary = None; Extensions = Map.empty }
 
         let typeMap = toTypeMap typeList
 
@@ -199,7 +221,7 @@ module SchemaGenerator =
                 { 
                     TypeName = unionId 
                     Body = Dummy 
-                    Type = Some typ  
+                    Type = Some(RealType typ)  
                     Summary = config.Services.DocReader typ 
                     Extensions = Map.empty 
                 }
@@ -236,33 +258,35 @@ module SchemaGenerator =
                             { 
                                 TypeName = Identifier.create unionId caseId
                                 Body = Dummy
-                                Type = None  
+                                Type = Some(UnionCase caseInfo)  
                                 Summary = config.Services.DocReader caseInfo  
                                 Extensions = Map.empty 
                             }
                         let (r, typeList) = generateTypeByPropList config version typeList dummyMember flds 
-                        typeList |> List.map (fun p -> if p = dummyMember then r else p), 
+                        let r = config.Extensions |> List.fold (fun st p -> p.ExtendType(UnionCase caseInfo, st)) r
+                        let memb = 
                             { 
                                 MemberName = caseId 
                                 Index = None 
                                 TypeRef = Reference { RefName = dummyMember.TypeName; Type = None } 
                                 Summary = config.Services.DocReader caseInfo 
-                                Extensions = Map.empty 
-                            } :: cases
+                                Extensions = Map.empty
+                            }
+                        let memb = config.Extensions |> List.fold (fun st p -> p.ExtendUnionCase((UnionCase caseInfo), st)) memb
+                        typeList |> List.map (fun p -> if p = dummyMember then r else p), memb :: cases
             let (typeList, cases) = ul |> List.fold caseFolder (typeList, [])
+            let unionNode =
+                { 
+                    TypeName = unionDummy.TypeName 
+                    Body = cases |> List.rev |> OneOfType 
+                    Type = unionDummy.Type 
+                    Summary = unionDummy.Summary 
+                    Extensions = Map.empty 
+                }
+            let unionNode = config.Extensions |> List.fold (fun st p -> p.ExtendType((RealType typ), st)) unionNode 
             unionRef, 
                 typeList 
-                |> List.map 
-                     (fun p -> 
-                        if p = unionDummy then 
-                            { 
-                                TypeName = unionDummy.TypeName 
-                                Body = cases |> List.rev |> OneOfType 
-                                Type = unionDummy.Type 
-                                Summary = unionDummy.Summary 
-                                Extensions = Map.empty 
-                            } 
-                        else p)
+                |> List.map (fun p -> if p = unionDummy then unionNode else p)
 
         | _ ->  invalidOp "`12345"
                 //if FSharpType.IsUnion(typ) then

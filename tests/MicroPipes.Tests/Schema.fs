@@ -230,7 +230,7 @@ let schemaGen =
           { 
             TypeName = wki 
             Body = Wellknown None
-            Type = typeof<Version> |> Some
+            Type = typeof<Version> |> RealType |> Some
             Summary = None  
             Extensions = Map.empty            
           }
@@ -304,7 +304,7 @@ let schemaGen =
                   ]
                 Extensions = Map.empty
             } |> Enum16u |> EnumType
-          Type = typeof<Test2> |> Some
+          Type = typeof<Test2> |> RealType |> Some
           Summary = None
           Extensions = Map.empty  
         }
@@ -328,7 +328,7 @@ let schemaGen =
                   ]
                 Extensions = Map.empty
             } |> Enum16u |> EnumType
-          Type = typeof<Test2> |> Some
+          Type = typeof<Test2> |> RealType |> Some
           Summary = None
           Extensions = Map.empty
         }
@@ -342,7 +342,7 @@ let schemaGen =
             TypeName = wki 
             
             Body = Wellknown None
-            Type = typeof<Version> |> Some
+            Type = typeof<Version> |> RealType |> Some
             Summary = None  
             Extensions = Map.empty  
           }
@@ -358,7 +358,7 @@ let schemaGen =
               { MemberName = "First" |> Identifier.parse; Index = None; Summary = None; TypeRef = Reference { RefName = wki; Type = typeof<Version> |> Some }; Extensions = Map.empty}
               { MemberName = "Second" |> Identifier.parse; Index = None; Summary = None; TypeRef = I32 |> Ordinal |> Basic; Extensions = Map.empty }
             ] |> OneOfType
-          Type = typeof<Test4> |> Some
+          Type = typeof<Test4> |> RealType |> Some
           Summary = None
           Extensions = Map.empty
         }

@@ -35,11 +35,17 @@ type TypeDefinition =
     | Wellknown of string option
     | Dummy
 
+type MakedFrom =
+    | RealType of Type
+    | UnionCase of FSharp.Reflection.UnionCaseInfo
+
+
+
 type TypeDeclaration =
     {
         TypeName: QualifiedIdentifier
         Body: TypeDefinition
-        Type : Type option
+        Type : MakedFrom option
         Summary: string option
         Extensions : Map<QualifiedIdentifier, Literal>
     }
