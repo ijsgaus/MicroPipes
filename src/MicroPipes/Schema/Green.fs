@@ -4,11 +4,10 @@ open System
 open MicroPipes.Schema
 open NuGet.Versioning
 open MicroPipes
-open MicroPipes.Schema.Literals
 
 type NamedTypeReference =
     {
-        Name : QualifiedIdentifier
+        RefName : QualifiedIdentifier
         Type : Type option
     }
 
@@ -22,10 +21,11 @@ type TypeReference =
 
 type NamedEntry =
     {
-        Name : Identifier
+        MemberName : Identifier
         Index : int option
-        Type : TypeReference
+        TypeRef : TypeReference
         Summary: string option
+        Extensions : Map<QualifiedIdentifier, Literal>
     }
 
 type TypeDefinition =
@@ -37,14 +37,16 @@ type TypeDefinition =
 
 type TypeDeclaration =
     {
+        TypeName: QualifiedIdentifier
         Body: TypeDefinition
         Type : Type option
         Summary: string option
+        Extensions : Map<QualifiedIdentifier, Literal>
     }
 
 type Argument =
     {
-        Name : Identifier
+        ArgName : Identifier
         Type : TypeReference
         Summary : string option
     }
@@ -67,25 +69,21 @@ type EndpointDefinition =
 
 type EndpointSchema =
     {
-        Name : QualifiedIdentifier
+        EndpointName : QualifiedIdentifier
         Definition : EndpointDefinition 
         Summary : string option        
-        Transports : Map<QualifiedIdentifier, Literal>
+        Extensions : Map<QualifiedIdentifier, Literal>
     }
 
-type TypeSchema =
-    {
-        Name : QualifiedIdentifier
-        Declaration : TypeDeclaration
-    }
+
 
 
 
 type ServiceSchema =
     {
-        Name : QualifiedIdentifier
+        SchemaName : QualifiedIdentifier
         Version : SemanticVersion
-        Types : TypeSchema list
+        Types : TypeDeclaration list
         Endpoints: EndpointSchema list
     }
 

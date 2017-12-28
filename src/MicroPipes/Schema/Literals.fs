@@ -1,156 +1,155 @@
-namespace MicroPipes.Schema.Literals
+namespace MicroPipes.Schema
 open System
 open System.Collections.Generic
 open System.Runtime.CompilerServices
 open MicroPipes
-open MicroPipes.Schema
 
 
-type Ordinal =
-    | U8 of byte
-    | I8 of sbyte
-    | U16 of uint16
-    | I16 of int16
-    | U32 of uint32
-    | I32 of int
-    | U64 of uint64
-    | I64 of int64
+type OrdinalValue =
+    | U8Value of byte
+    | I8Value of sbyte
+    | U16Value of uint16
+    | I16Value of int16
+    | U32Value of uint32
+    | I32Value of int
+    | U64Value of uint64
+    | I64Value of int64
     //#region Impicit operators
     [<SpecialName>]
-    static member op_Implicit(value) = U8 value
+    static member op_Implicit(value) = U8Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = I8 value
+    static member op_Implicit(value) = I8Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = U16 value
+    static member op_Implicit(value) = U16Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = I16 value
+    static member op_Implicit(value) = I16Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = U32 value
+    static member op_Implicit(value) = U32Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = I32 value
+    static member op_Implicit(value) = I32Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = U64 value
+    static member op_Implicit(value) = U64Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = I64 value
+    static member op_Implicit(value) = I64Value value
     //#endregion
 
-type Float =
-    | F32 of float32
-    | F64 of float
+type FloatValue =
+    | F32Value of float32
+    | F64Value of float
     [<SpecialName>]
-    static member op_Implicit(value) = F32 value
+    static member op_Implicit(value) = F32Value value
 
     [<SpecialName>]
-    static member op_Implicit(value) = F64 value
+    static member op_Implicit(value) = F64Value value
 
-type Basic =
-    | Ordinal of Ordinal
-    | Float of Float
-    | String of string
-    | Uuid of Guid
-    | Bool of bool
-    | DT of DateTime
-    | DTO of DateTimeOffset
-    | TS of TimeSpan
-    | Id of QualifiedIdentifier
-    | None
+type BasicValue =
+    | OrdinalValue of OrdinalValue
+    | FloatValue of FloatValue
+    | StringValue of string
+    | UuidValue of Guid
+    | BoolValue of bool
+    | DTValue of DateTime
+    | DTOValue of DateTimeOffset
+    | TSValue of TimeSpan
+    | IdValue of QualifiedIdentifier
+    | NoneValue
     [<SpecialName>]
-    static member op_Implicit(value) = U8 value |> Ordinal
+    static member op_Implicit(value) = U8Value value |> OrdinalValue
     [<SpecialName>]
-    static member op_Implicit(value) = I8 value |> Ordinal
-
-    [<SpecialName>]
-    static member op_Implicit(value) = U16 value |> Ordinal
-    [<SpecialName>]
-    static member op_Implicit(value) = I16 value |> Ordinal
+    static member op_Implicit(value) = I8Value value |> OrdinalValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = U32 value |> Ordinal
+    static member op_Implicit(value) = U16Value value |> OrdinalValue
     [<SpecialName>]
-    static member op_Implicit(value) = I32 value |> Ordinal
-    [<SpecialName>]
-    static member op_Implicit(value) = U64 value |> Ordinal
-    [<SpecialName>]
-    static member op_Implicit(value) = I64 value |> Ordinal
-    [<SpecialName>]
-    static member op_Implicit(value) = F32 value |> Float
-    [<SpecialName>]
-    static member op_Implicit(value) = F64 value |> Float
+    static member op_Implicit(value) = I16Value value |> OrdinalValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = String value
+    static member op_Implicit(value) = U32Value value |> OrdinalValue
     [<SpecialName>]
-    static member op_Implicit(value) = Bool value
+    static member op_Implicit(value) = I32Value value |> OrdinalValue
+    [<SpecialName>]
+    static member op_Implicit(value) = U64Value value |> OrdinalValue
+    [<SpecialName>]
+    static member op_Implicit(value) = I64Value value |> OrdinalValue
+    [<SpecialName>]
+    static member op_Implicit(value) = F32Value value |> FloatValue
+    [<SpecialName>]
+    static member op_Implicit(value) = F64Value value |> FloatValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = Uuid value
+    static member op_Implicit(value) = StringValue value
     [<SpecialName>]
-    static member op_Implicit(value) = DT value
-    [<SpecialName>]
-    static member op_Implicit(value) = DTO value
-    [<SpecialName>]
-    static member op_Implicit(value) = TS value
+    static member op_Implicit(value) = BoolValue value
 
     [<SpecialName>]
-    static member op_Implicit(value) = Id value
+    static member op_Implicit(value) = UuidValue value
+    [<SpecialName>]
+    static member op_Implicit(value) = DTValue value
+    [<SpecialName>]
+    static member op_Implicit(value) = DTOValue value
+    [<SpecialName>]
+    static member op_Implicit(value) = TSValue value
+
+    [<SpecialName>]
+    static member op_Implicit(value) = IdValue value
      
 
 and Literal =
-    | Basic of Basic 
-    | Array of Literal list
-    | Map of Map<string, Literal>
+    | BasicValue of BasicValue 
+    | ArrayValue of Literal list
+    | MapValue of Map<string, Literal>
     [<SpecialName>]
-    static member op_Implicit(value) = value |> Seq.toList |> Array 
+    static member op_Implicit(value) = value |> Seq.toList |> ArrayValue 
     [<SpecialName>]
     static member op_Implicit(value : IEnumerable<KeyValuePair<string, Literal>>) = 
         value 
             |> Seq.map (fun p -> p.Key, p.Value) 
             |> Map.ofSeq
-            |> Map 
+            |> MapValue 
 
     [<SpecialName>]
-    static member op_Implicit(value) = U8 value |> Ordinal |> Basic
+    static member op_Implicit(value) = U8Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = I8 value |> Ordinal |> Basic
+    static member op_Implicit(value) = I8Value value |> OrdinalValue |> BasicValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = U16 value |> Ordinal |> Basic
+    static member op_Implicit(value) = U16Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = I16 value |> Ordinal |> Basic
+    static member op_Implicit(value) = I16Value value |> OrdinalValue |> BasicValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = U32 value |> Ordinal |> Basic
+    static member op_Implicit(value) = U32Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = I32 value |> Ordinal |> Basic
+    static member op_Implicit(value) = I32Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = U64 value |> Ordinal |> Basic
+    static member op_Implicit(value) = U64Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = I64 value |> Ordinal |> Basic
+    static member op_Implicit(value) = I64Value value |> OrdinalValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = F32 value |> Float |> Basic
+    static member op_Implicit(value) = F32Value value |> FloatValue |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = F64 value |> Float |> Basic
+    static member op_Implicit(value) = F64Value value |> FloatValue |> BasicValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = String value |> Basic
+    static member op_Implicit(value) = StringValue value |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = Bool value |> Basic
+    static member op_Implicit(value) = BoolValue value |> BasicValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = Uuid value |> Basic
+    static member op_Implicit(value) = UuidValue value |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = DT value |> Basic
+    static member op_Implicit(value) = DTValue value |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = DTO value |> Basic
+    static member op_Implicit(value) = DTOValue value |> BasicValue
     [<SpecialName>]
-    static member op_Implicit(value) = TS value |> Basic
+    static member op_Implicit(value) = TSValue value |> BasicValue
 
     [<SpecialName>]
-    static member op_Implicit(value) = Id value |> Basic
+    static member op_Implicit(value) = IdValue value |> BasicValue

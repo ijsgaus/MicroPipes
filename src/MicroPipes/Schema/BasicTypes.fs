@@ -1,4 +1,5 @@
 namespace MicroPipes.Schema
+open MicroPipes
 
 
 
@@ -15,7 +16,7 @@ type BasicType =
     
 type EnumField<'t> =
     {
-        Name : Identifier
+        FieldName : Identifier
         Value : 't
         Summary : string option
     }
@@ -24,6 +25,7 @@ type EnumType<'t> =
     {
         IsFlag : bool
         Values : EnumField<'t> list
+        Extensions : Map<QualifiedIdentifier, Literal>
     }
     
 type EnumType =

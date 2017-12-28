@@ -28,9 +28,9 @@ module Validation =
         | [] -> Ok()
         | _ -> ss |> Error
     
-    let validateEnum (enm : EnumType<'t>)  =
+    let validateEnum enm    =
         let mkError (k, _) = sprintf "Duplicate enum field name '%O'" k
-        enm.Values |> checkDuplicates (fun p -> p.Name) mkError 
+        enm.Values |> checkDuplicates (fun p -> p.FieldName) mkError 
             
 
     let validateEnumType enm =
@@ -44,20 +44,20 @@ module Validation =
         | Enum64u us -> validateEnum us
         | Enum64 s -> validateEnum s
 
-    let validateNamedEntryList (nel : NamedEntry list) =
+    let validateNamedEntryList nel =
         let checkNames () =
             let mkError (key, _) = sprintf "Duplicate member name '%O'" key
-            nel |> checkDuplicates (fun p -> p.Name) mkError
+            nel |> checkDuplicates (fun p -> p.MemberName) mkError
         let checkIndexes () =
             if nel |> List.exists (fun p -> p.Index.IsSome) then
                 //existence
                 let notExists =
                     nel 
                     |> List.filter (fun p -> p.Index.IsNone)
-                    |> List.map (fun p -> sprintf "Index not specified for '%O'" p.Name)
+                    |> List.map (fun p -> sprintf "Index not specified for '%O'" p.MemberName)
                 // duplicates 
                 let onDuplicate (k : int option, v : NamedEntry list) =    
-                    let v = v |> List.map (fun p -> p.Name.ToString())
+                    let v = v |> List.map (fun p -> p.MemberName.ToString())
                     sprintf "Duplicate indexes %i on member %A" k.Value v
                 let duplicates = 
                     nel 
@@ -69,32 +69,32 @@ module Validation =
             
         
 
-    let validateArgumentList (args : Argument list) =
+    let validateArgumentList args =
         let mkError (key, _) = sprintf "Duplicate argument name '%O'" key
-        args |> checkDuplicates (fun p -> p.Name) mkError 
+        args |> checkDuplicates (fun p -> p.ArgName) mkError 
 
-    let validateTypeDuplicates (ss : TypeSchema list) =
+    let validateTypeDuplicates ss =
         let mkError (key, _) = sprintf "Duplicate type name '%O'" key
-        ss |> checkDuplicates (fun p -> p.Name) mkError 
+        ss |> checkDuplicates (fun p -> p.TypeName) mkError 
 
-    let validateEndpointsDuplicates (ss : EndpointSchema list) =
+    let validateEndpointsDuplicates ss =
         let mkError (key, _) = sprintf "Duplicate endpoint name '%O'" key
-        ss |> checkDuplicates (fun p -> p.Name) mkError 
+        ss |> checkDuplicates (fun p -> p.EndpointName) mkError 
 
-    let validateType (t : TypeSchema)=
-        (match t.Declaration.Body with
+    let validateType (t : TypeDeclaration)=
+        (match t.Body with
         | EnumType et -> validateEnumType et 
         | MapType mt -> validateNamedEntryList mt
         | OneOfType ot -> validateNamedEntryList ot
         | Wellknown _ -> []
         | Dummy -> [ "Is dummy type"])
-        |> List.map (fun s -> sprintf "Type '%O': %s" t.Name s)
+        |> List.map (fun s -> sprintf "Type '%O': %s" t.TypeName s)
 
     let validateEndpoint (t : EndpointSchema) =
         (match t.Definition with
         | Event _ -> []
         | Call cd -> cd.Arguments |> validateArgumentList)
-        |> List.map (fun s -> sprintf "Endpoint '%O': %s" t.Name s)
+        |> List.map (fun s -> sprintf "Endpoint '%O': %s" t.EndpointName s)
 
     let validateSchema schema = 
         [

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using MicroPipes.Schema;
 using MicroPipes.Schema.Green;
-using MicroPipes.Schema.Literals;
 
 namespace SyntaxTests
 {
@@ -10,26 +9,26 @@ namespace SyntaxTests
     {
         static void Main(string[] args)
         {
-            Basic basic = 5;
+            BasicValue basic = 5;
             switch (basic)
             {
-                case Basic.Bool b:
+                case BasicValue.BoolValue b:
                     break;
-                case Basic.DT dt:
+                case BasicValue.DTValue dt:
                     break;
-                case Basic.DTO dto:
+                case BasicValue.DTOValue dto:
                     break;
-                case Basic.Float f:
+                case BasicValue.FloatValue f:
                     break;
-                case Basic.Id id:
+                case BasicValue.IdValue id:
                     break;
-                case Basic.Ordinal ordinal:
+                case BasicValue.OrdinalValue ordinal:
                     break;
-                case Basic.String s:
+                case BasicValue.StringValue s:
                     break;
-                case Basic.TS ts:
+                case BasicValue.TSValue ts:
                     break;
-                case Basic.Uuid uuid:
+                case BasicValue.UuidValue uuid:
                     break;
             }
 
