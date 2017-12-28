@@ -5,7 +5,16 @@ open System.Linq
 open MicroPipes.Schema
 
 
+type HashMap<'key, 'value> = LanguageExt.HashMap<'key, 'value>
+
+module HashMap =
+    let fromSeq<'key, 'value> (list : ('key * 'value) seq) =
+        LanguageExt.HashMap.createRange<'key, 'value>(list)
+    let tryGet key (map : HashMap<'key, 'value>) =
+        LanguageExt.FSharp.fs(LanguageExt.HashMap.find(map, key)) 
+
 module TypePatterns =
+
     let (|IsU8|_|) (t: Type)  =
         if Object.Equals(typeof<byte>, t) then Some() else None
     let (|IsI8|_|)  (t:Type) =
@@ -111,8 +120,8 @@ module TypePatterns =
             else
                 None
 
-    let (|IsInList|_|) lst extr (t:Type) =
-        lst |> List.map (fun p -> extr p, p) |> List.tryFind (fun (t1 : Type, _) -> Object.Equals(t1, t)) |> Option.map snd
+    let (|IsKnown|_|) map (t:Type) =
+        map |> HashMap.tryGet t 
 
     let (|IsEnum|_|) (t:Type) = match t.IsEnum with | true -> Some() | _ -> None
 
@@ -120,7 +129,7 @@ module TypePatterns =
         match Reflection.FSharpType.IsUnion t with
         | false -> None
         | true -> 
-            Reflection.FSharpType.GetUnionCases(t) 
-                |> Seq.map (fun p -> p.Name |> Identifier.parse, p.GetCustomAttributes() |> Enumerable.Cast<Attribute> |> Seq.toList, p.Tag, p.GetFields() |> Array.toList) |> Seq.toList |> Some
+            Reflection.FSharpType.GetUnionCases(t) |> Array.toList |> Some
+                
         
     
