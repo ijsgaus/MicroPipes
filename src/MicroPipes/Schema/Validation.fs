@@ -84,7 +84,7 @@ module Validation =
     let validateType (t : TypeDeclaration)=
         (match t.Body with
         | EnumType et -> validateEnumType et 
-        | MapType mt -> validateNamedEntryList mt
+        | MapType (_, mt) -> validateNamedEntryList mt
         | OneOfType ot -> validateNamedEntryList ot
         | Wellknown _ -> []
         | Dummy -> [ "Is dummy type"])

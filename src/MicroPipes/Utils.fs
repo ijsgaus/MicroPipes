@@ -12,6 +12,10 @@ module HashMap =
         LanguageExt.HashMap.createRange<'key, 'value>(list)
     let tryGet key (map : HashMap<'key, 'value>) =
         LanguageExt.FSharp.fs(LanguageExt.HashMap.find(map, key)) 
+    let empty<'key, 'value> =
+        LanguageExt.HashMap<'key, 'value>()
+    let add key value (hm : HashMap<_, _> ) =
+        LanguageExt.HashMap.add(hm, key, value) 
 
 module TypePatterns =
 
@@ -131,5 +135,8 @@ module TypePatterns =
         | true -> 
             Reflection.FSharpType.GetUnionCases(t) |> Array.toList |> Some
                 
-        
-    
+    let (|IsStruct|_|) (t:Type) =
+        if t.IsValueType && (t.IsEnum |> not) then Some() else None
+
+    let (|IsClass|_|) (t:Type) =
+        if t.IsClass then Some() else None

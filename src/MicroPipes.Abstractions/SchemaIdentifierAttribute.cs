@@ -3,7 +3,7 @@ using MicroPipes.Schema;
 
 namespace MicroPipes
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Method)]
     public class SchemaIdentifierAttribute : Attribute
     {
         public SchemaIdentifierAttribute(string name)

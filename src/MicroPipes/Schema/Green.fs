@@ -4,6 +4,7 @@ open System
 open MicroPipes.Schema
 open NuGet.Versioning
 open MicroPipes
+open System.Reflection
 
 type NamedTypeReference =
     {
@@ -30,22 +31,26 @@ type NamedEntry =
 
 type TypeDefinition =
     | EnumType of EnumType
-    | MapType of NamedEntry list 
+    | MapType of BasedOn : NamedTypeReference option * NamedEntry list 
     | OneOfType of NamedEntry list
     | Wellknown of string option
     | Dummy
 
-type MakedFrom =
-    | RealType of Type
+type Maked<'t when 't :> MemberInfo> =
+    | Member of 't
     | UnionCase of FSharp.Reflection.UnionCaseInfo
 
+module Maked =
+    let fromMember<'t when 't :> MemberInfo> (a : 't) = Member (a :> MemberInfo)
+    let fromType (t : Type) = Member t
+    let fromCase (case: FSharp.Reflection.UnionCaseInfo) = UnionCase case
 
 
 type TypeDeclaration =
     {
         TypeName: QualifiedIdentifier
         Body: TypeDefinition
-        Type : MakedFrom option
+        Type : Maked<Type> option
         Summary: string option
         Extensions : Map<QualifiedIdentifier, Literal>
     }
