@@ -16,7 +16,7 @@
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MicroPipes\MicroPipes.fsproj" />
+    <ProjectReference Include="..\..\src\MicroPipes.Schema\MicroPipes.Schema.fsproj" />
     <ProjectReference Include="..\TestSchema.CSharp\TestSchema.CSharp.csproj" />
     <ProjectReference Include="..\TestSchema.FSharp\TestSchema.FSharp.fsproj" />
   </ItemGroup>

@@ -6,9 +6,7 @@ open MicroPipes.Schema.Green
 open MicroPipes
 open System.Linq
 open TypePatterns
-open System
 open MicroPipes.Reflection
-open System.Security.Cryptography
 
 
 type ISchemaGeneratorExtension =
@@ -110,7 +108,10 @@ module SchemaGenerator =
     
 
     let makeEnumType<'t> (cvt : EnumType<'t> -> EnumType) =
-        fun cv dr -> isEnumBaseType<'t> >=> makeGenericEnumType cv dr >-> cvt
+        fun cv dr typ -> 
+            isEnumBaseType<'t> typ 
+            |> Option.bind (makeGenericEnumType cv dr) 
+            |> Option.map cvt
 
     type EnumMaker = Services -> SemanticVersion -> Type -> Option<EnumType>  
 
@@ -394,6 +395,7 @@ module SchemaGenerator =
                 | _ ->  sprintf "'%A' - invalid schema member type" typ |> invalidArg "typ"
             generateType typeList typ
 
+        
                     
 
             

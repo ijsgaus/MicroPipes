@@ -3,16 +3,14 @@
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Schema/Common.fs" />
-    <Compile Include="Option.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="Reflection.fs" />
     <Compile Include="Utils.fs" />
-    <Compile Include="Schema/Literals.fs" />
-    <Compile Include="Schema/BasicTypes.fs" />
-    <Compile Include="Schema/Green.fs" />
-    <Compile Include="Schema/Validation.fs" />
-    <Compile Include="Schema/SchemaGeneration.fs" />
-    <Compile Include="Library.fs" />
+    <Compile Include="Literals.fs" />
+    <Compile Include="BasicTypes.fs" />
+    <Compile Include="Green.fs" />
+    <Compile Include="Validation.fs" />
+    <Compile Include="SchemaGeneration.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LanguageExt.Core" Version="2.1.32" />
@@ -21,5 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MicroPipes.Abstractions\MicroPipes.Abstractions.csproj" />
+    <ProjectReference Include="..\MicroPipes.Markup\MicroPipes.Markup.csproj" />
   </ItemGroup>
 </Project>

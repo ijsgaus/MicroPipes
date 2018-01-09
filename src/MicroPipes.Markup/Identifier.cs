@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace MicroPipes.Schema
+namespace MicroPipes
 {
     public class Identifier : IEquatable<Identifier>, IComparable<Identifier>, IComparable
     {

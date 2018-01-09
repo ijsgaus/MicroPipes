@@ -1,5 +1,4 @@
 ﻿using System;
-using MicroPipes.Schema;
 
 namespace MicroPipes
 {
