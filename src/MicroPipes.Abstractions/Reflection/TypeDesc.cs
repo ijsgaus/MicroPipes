@@ -14,7 +14,7 @@ namespace MicroPipes.Reflection
 
         
 
-        protected internal virtual bool Equals(TypeDesc other)
+        protected virtual bool Equals(TypeDesc other)
         {
             return Equals(Name, other.Name);
         }

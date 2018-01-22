@@ -50,7 +50,7 @@ namespace MicroPipes.Reflection
 
         public ScalarKind Kind { get; }
 
-        protected internal override bool Equals(TypeDesc other)
+        protected override bool Equals(TypeDesc other)
         {
             return ((ScalarDesc) other).Kind == Kind;
         }

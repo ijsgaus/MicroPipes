@@ -10,11 +10,12 @@ namespace MicroPipes.Reflection
     public class ServiceDesc : IReflectionExtensible
     {
         public ServiceDesc([NotNull] QualifiedIdentifier name, [NotNull] IEnumerable<EndpointDesc> endpoints,
-            IEnumerable<(QualifiedIdentifier, object)> extensions = null)
+            IEnumerable<KeyValuePair<QualifiedIdentifier, object>> extensions = null)
         {
             if (endpoints == null) throw new ArgumentNullException(nameof(endpoints));
 
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Endpoints = end
             try
             {
                 Endpoints = ImmutableDictionary.CreateRange(endpoints.ToImmutableDictionary(p => p.Name));
@@ -32,14 +33,14 @@ namespace MicroPipes.Reflection
 
         public QualifiedIdentifier Name { get; }
         public IReadOnlyDictionary<Identifier, EndpointDesc> Endpoints { get; }
-        public IReadOnlyDictionary<QualifiedIdentifier, object> Extensions { get; }
+        public IImmutableDictionary<QualifiedIdentifier, object> Extensions { get; }
 
         protected bool Equals(ServiceDesc other)
         {
             return
                 Equals(Name, other.Name) &&
-                Endpoints.DefaultComparerEqual(other.Endpoints) &&
-                Extensions.DefaultComparerEqual(other.Extensions);
+                Endpoints.StructureEqual(other.Endpoints) &&
+                Extensions.StructureEqual(other.Extensions);
         }
 
         public override bool Equals(object obj)
@@ -54,8 +55,8 @@ namespace MicroPipes.Reflection
             unchecked
             {
                 var hashCode = (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Endpoints.DefaultComparerHashCode();
-                hashCode = (hashCode * 397) ^ Extensions.DefaultComparerHashCode();
+                hashCode = (hashCode * 397) ^ Endpoints.StructureHashCode();
+                hashCode = (hashCode * 397) ^ Extensions.StructureHashCode();
                 return hashCode;
             }
         }

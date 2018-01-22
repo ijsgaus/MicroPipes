@@ -16,14 +16,14 @@ namespace MicroPipes.Reflection
 
         internal override bool Equals(EndpointDesc other)
         {
-            return base.Equals(other) && Overloads.DefaultComparerEqual(((EventEndpointDesc) other).Overloads);
+            return base.Equals(other) && Overloads.StructureEqual(((EventEndpointDesc) other).Overloads);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return (base.GetHashCode() * 397) ^ Overloads.DefaultComparerHashCode();
+                return (base.GetHashCode() * 397) ^ Overloads.StructureHashCode();
             }
         }
         

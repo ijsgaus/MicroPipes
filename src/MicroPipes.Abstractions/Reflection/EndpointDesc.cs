@@ -7,19 +7,22 @@ namespace MicroPipes.Reflection
 {
     public abstract class EndpointDesc : IReflectionExtensible
     {
-        protected EndpointDesc([NotNull] Identifier name, [CanBeNull] IEnumerable<(QualifiedIdentifier, object)> extensions)
+        protected EndpointDesc([NotNull] Identifier name,
+            [CanBeNull] IEnumerable<KeyValuePair<QualifiedIdentifier, object>> extensions = null)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            Extensions = extensions.ToImmutableDictionary();
+            Extensions = extensions is IImmutableDictionary<QualifiedIdentifier, object> ed
+                ? ed
+                : extensions?.ToImmutableDictionary() ?? ImmutableDictionary<QualifiedIdentifier, object>.Empty;
         }
 
         public Identifier Name { get; }
 
-        public IReadOnlyDictionary<QualifiedIdentifier, object> Extensions { get; }
+        public IImmutableDictionary<QualifiedIdentifier, object> Extensions { get; }
 
         internal virtual bool Equals(EndpointDesc other)
         {
-            return Equals(Name, other.Name) && Extensions.DefaultComparerEqual(other.Extensions);
+            return Equals(Name, other.Name) && Extensions.StructureEqual(other.Extensions);
         }
 
         public override bool Equals(object obj)
@@ -34,7 +37,7 @@ namespace MicroPipes.Reflection
         {
             unchecked
             {
-                return (Name.GetHashCode() * 397) ^ Extensions.DefaultComparerHashCode();
+                return (Name.GetHashCode() * 397) ^ Extensions.StructureHashCode();
             }
         }
 

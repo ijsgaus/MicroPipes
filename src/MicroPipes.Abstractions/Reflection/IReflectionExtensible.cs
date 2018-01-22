@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace MicroPipes.Reflection
 {
     public interface IReflectionExtensible
     {
-        IReadOnlyDictionary<QualifiedIdentifier, object> Extensions { get; }
+        IImmutableDictionary<QualifiedIdentifier, object> Extensions { get; }
     }
 }

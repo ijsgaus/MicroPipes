@@ -37,12 +37,12 @@ namespace MicroPipes.Reflection
 
         internal override bool Equals(EndpointDesc other)
         {
-            return base.Equals(other) && ((CallEndpointDesc) other).Overloads.DefaultComparerEqual(Overloads);
+            return base.Equals(other) && ((CallEndpointDesc) other).Overloads.StructureEqual(Overloads);
         }
 
         public override int GetHashCode()
         {
-            return (base.GetHashCode() * 397) ^ Overloads.DefaultComparerHashCode();
+            return (base.GetHashCode() * 397) ^ Overloads.StructureHashCode();
         }
     }
 }

@@ -1,21 +1,24 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace MicroPipes.Reflection
 {
     public sealed class TypeMemberDesc : IReflectionExtensible
     {
-        public TypeMemberDesc(QualifiedIdentifier value, IEnumerable<(QualifiedIdentifier, object)> extensions)
+        public TypeMemberDesc(QualifiedIdentifier value, IEnumerable<KeyValuePair<QualifiedIdentifier, object>> extensions = null)
         {
             Value = value;
-            Extensions = extensions.ToImmutableDictionary();
+            Extensions = extensions is IImmutableDictionary<QualifiedIdentifier, object> id
+                ? id
+                : (extensions?.ToImmutableDictionary() ?? ImmutableDictionary<QualifiedIdentifier, object>.Empty);
         }
 
         public QualifiedIdentifier  Value { get; }
-        public IReadOnlyDictionary<QualifiedIdentifier, object> Extensions { get; }
+        public IImmutableDictionary<QualifiedIdentifier, object> Extensions { get; }
 
         private bool Equals(TypeMemberDesc other)
         {
-            return Equals(Value, other.Value) && Extensions.DefaultComparerEqual(other.Extensions);
+            return Equals(Value, other.Value) && Extensions.StructureEqual(other.Extensions);
         }
 
         public override bool Equals(object obj)
@@ -30,7 +33,7 @@ namespace MicroPipes.Reflection
         {
             unchecked
             {
-                return (Value.GetHashCode() * 397) ^ Extensions.DefaultComparerHashCode();
+                return (Value.GetHashCode() * 397) ^ Extensions.StructureHashCode();
             }
         }
 

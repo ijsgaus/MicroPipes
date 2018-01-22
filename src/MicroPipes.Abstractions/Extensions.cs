@@ -22,19 +22,19 @@ namespace MicroPipes
 
         }
         
-        public static bool DefaultComparerEqual<TKey, TValue>(
+        public static bool StructureEqual<TKey, TValue>(
             this IReadOnlyDictionary<TKey, TValue> dictionary, IReadOnlyDictionary<TKey, TValue> other)
             => ReadOnlyDictionaryEqualityComparer<TKey, TValue>.Default.Equals(dictionary, other);
         
-        public static int DefaultComparerHashCode<TKey, TValue>(
+        public static int StructureHashCode<TKey, TValue>(
             this IReadOnlyDictionary<TKey, TValue> dictionary)
             => ReadOnlyDictionaryEqualityComparer<TKey, TValue>.Default.GetHashCode(dictionary);
         
-        public static bool DefaultComparerEqual<T>(
+        public static bool StructureEqual<T>(
             this IReadOnlyCollection<T> dictionary, IReadOnlyCollection<T> other)
             => ReadOnlyCollectionEqualityComparer<T>.Default.Equals(dictionary, other);
         
-        public static int DefaultComparerHashCode<T>(
+        public static int StructureHashCode<T>(
             this IReadOnlyCollection<T> dictionary)
             => ReadOnlyCollectionEqualityComparer<T>.Default.GetHashCode(dictionary);
     }
