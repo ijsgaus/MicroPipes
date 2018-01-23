@@ -9,6 +9,6 @@
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MicroPipes.Abstractions\MicroPipes.Abstractions.csproj" />
+    <ProjectReference Include="..\MicroPipes.Core\MicroPipes.Core.csproj" />
   </ItemGroup>
 </Project>

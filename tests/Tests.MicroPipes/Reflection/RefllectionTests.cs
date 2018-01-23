@@ -6,6 +6,7 @@ namespace Tests.MicroPipes.Reflection
 {
     public class RefllectionTests
     {
+        /*
         [Fact]
         public void MustThrowDuplicateEndpointNames()
         {
@@ -85,5 +86,6 @@ namespace Tests.MicroPipes.Reflection
         {
             Assert.NotEqual<TypeDesc>(TypeDesc.Bool, TypeDesc.DateTime);
         }
+        */
     }
 }
