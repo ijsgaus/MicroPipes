@@ -2,8 +2,9 @@
 
 namespace MicroPipes.Serialization
 {
-    public interface ISerializerProvider
+    public interface ISerializatorProvider
     {
         ISerializer GetSerializer(ContentType contentType, string defaultEncoding);
+        IDeserialize GetDeserializer(ContentType contentType, string defaultEncoding);
     }
 }

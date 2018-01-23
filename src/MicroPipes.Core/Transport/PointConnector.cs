@@ -1,6 +1,6 @@
 ﻿namespace MicroPipes.Transport
 {
-    public interface IFatRequestListener
+    public abstract class PointConnector
     {
         
     }

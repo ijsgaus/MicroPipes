@@ -4,11 +4,11 @@ using Newtonsoft.Json.Serialization;
 
 namespace MicroPipes.Serialization.Json
 {
-    public class JsonSerializerProvider : TextSerializerProvider
+    public class JsonSerializatorProvider : TextSerializatorProvider
     {
         private readonly JsonSerializerSettings _settings;
 
-        public JsonSerializerProvider(JsonSerializerSettings settings = null)
+        public JsonSerializatorProvider(JsonSerializerSettings settings = null)
         {
             _settings = settings ?? new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
         }
