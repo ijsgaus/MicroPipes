@@ -5,10 +5,13 @@
     <RootNamespace>MicroPipes</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Markup" />
+    <Folder Include="Encoding" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MicroPipes.Markup\MicroPipes.Markup.csproj" />
   </ItemGroup>
 </Project>

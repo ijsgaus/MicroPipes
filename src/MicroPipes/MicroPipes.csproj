@@ -11,4 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MicroPipes.Core\MicroPipes.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Actors" />
+  </ItemGroup>
 </Project>
