@@ -1,11 +1,10 @@
-﻿namespace MicroActors
-{
-    public struct ActorContext<T>
-    {
-        
-    }
+﻿using System;
 
-    public struct ActorContext
+namespace MicroActors
+{
+    public struct ActorContext<TKey>
     {
+            
     }
+    
 }
