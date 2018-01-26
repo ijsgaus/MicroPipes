@@ -6,7 +6,7 @@ namespace MicroPipes.Transport
 {
     public interface IEventProducer : IAsyncDisposable
     {
-        Task PublishAsync(object message, RequestContext context, CancellationToken cancellation);
+        Task PublishAsync(object message, SendContext context, CancellationToken cancellation);
     }
     
     

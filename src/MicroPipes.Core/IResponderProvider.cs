@@ -5,7 +5,7 @@ namespace MicroPipes
     public interface IResponderProvider<in TResponse> 
         where TResponse : class
     {
-        IResponderProvider<TResponse> WithContext(ResponseContext context);
+        IResponderProvider<TResponse> WithContext(ReceiveContext context);
         IResponder<TResponse> WithTimeout(TimeSpan timeout); 
         
     }

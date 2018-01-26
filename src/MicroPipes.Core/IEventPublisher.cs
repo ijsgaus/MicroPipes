@@ -14,8 +14,8 @@ namespace MicroPipes
         where TMsg : class
         where TEvent : IEvent<TMsg>
     {
-        Task Publish(TMsg message, CancellationToken cancellation = default);
-        IEventPublisher<TEvent, TMsg> WithTimeout(TimeSpan timeSpan);
+        Task PublishAsync(TMsg message, SendContext sendContext, CancellationToken cancellation = default);
+        IEventPublisher<TEvent, TMsg> WithTtl(TimeSpan timeSpan);
     }
 
     public interface IEventPublisher

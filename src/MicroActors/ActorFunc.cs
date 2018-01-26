@@ -17,6 +17,7 @@ namespace MicroActors
 
     public interface IActorKey<TKey>
     {
-        
+        string ToSegment(TKey key);
+        TKey FromSegment(string segment);
     }
 }

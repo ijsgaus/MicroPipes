@@ -2,7 +2,7 @@
 
 namespace MicroPipes
 {
-    public class RequestContext
+    public class SendContext
     {
         public string Requester { get; }
         public ContentType ContentType { get; }

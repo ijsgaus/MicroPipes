@@ -1,6 +1,6 @@
 ﻿namespace MicroPipes
 {
-    public class ResponseContext
+    public class ReceiveContext
     {
         
     }

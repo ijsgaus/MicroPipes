@@ -12,6 +12,6 @@
     <ProjectReference Include="..\MicroPipes.Core\MicroPipes.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Actors" />
+    <Folder Include="Utils" />
   </ItemGroup>
 </Project>

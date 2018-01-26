@@ -3,9 +3,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
+    <ProjectReference Include="..\MicroPipes\MicroPipes.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MicroPipes\MicroPipes.csproj" />
+    <PackageReference Include="RabbitLink" Version="0.5.8" />
   </ItemGroup>
 </Project>
